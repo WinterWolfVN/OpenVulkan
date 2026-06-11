@@ -1,0 +1,45 @@
+name: Build MVulkan SO
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        abi:
+          - arm64-v8a
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Android NDK
+        run: |
+          wget https://dl.google.com/android/repository/android-ndk-r27c-linux.zip
+          unzip -q android-ndk-r27c-linux.zip
+
+      - name: Configure CMake
+        run: |
+          mkdir build
+
+          cmake \
+          -S Build \
+          -B build \
+          -DANDROID_ABI=${{ matrix.abi }} \
+          -DANDROID_PLATFORM=android-21 \
+          -DANDROID_NDK=$PWD/android-ndk-r27c \
+          -DCMAKE_TOOLCHAIN_FILE=$PWD/android-ndk-r27c/build/cmake/android.toolchain.cmake
+
+      - name: Build
+        run: |
+          cmake --build build --config Release -j$(nproc)
+
+      - name: Upload SO
+        uses: actions/upload-artifact@v4
+        with:
+          name: mvulkan-${{ matrix.abi }}
+          path: build/**/*.so
