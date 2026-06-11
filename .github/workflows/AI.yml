@@ -16,5 +16,7 @@ jobs:
         run: curl -fsSL https://omnara.com/install.sh | bash
 
       - name: Run AI
-        run: omnara
+        run: 
+          run omnara-claude /login
+          omnara
       
