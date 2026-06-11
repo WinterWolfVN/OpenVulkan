@@ -1,0 +1,20 @@
+name: Build with AI
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download AI
+        run: curl -fsSL https://omnara.com/install.sh | bash
+
+      - name: Run AI
+        run: omnara
+      
