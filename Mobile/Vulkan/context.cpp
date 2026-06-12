@@ -33,7 +33,7 @@ VkResult vkEnumeratePhysicalDevices(VkInstance instance, uint32_t* pPhysicalDevi
 
 void vkGetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice, void* pProperties) {
     if (pProperties) {
-        memset(pProperties, 0, 1024); 
+        memset(pProperties, 0, 1024);
         strcpy((char*)pProperties + 16, "GLES 3.1 Bridge Android 5");
     }
 }
