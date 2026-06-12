@@ -132,7 +132,9 @@ PFN_vkVoidFunction vkGetInstanceProcAddr(VkInstance instance, const char* pName)
     if (strcmp(pName, "vkCmdEndRenderPass") == 0) return (PFN_vkVoidFunction)vkCmdEndRenderPass;
     if (strcmp(pName, "vkQueuePresentKHR") == 0) return (PFN_vkVoidFunction)vkQueuePresentKHR;
     if (strcmp(pName, "vkAcquireNextImageKHR") == 0) return (PFN_vkVoidFunction)vkAcquireNextImageKHR;
-    if (strcmp(pName, "vkCmdDraw") == 0) return (PFN_vkVoidFunction)vkCmdDraw;
+    if (strcmp(pName, "vkCmdDraw") == 0) return (PFN_vkVoidFunction)vkCmdDraw;    
+    if (strcmp(pName, "vkCreateShaderModule") == 0) return (PFN_vkVoidFunction)vkCreateShaderModule;
+    if (strcmp(pName, "vkDestroyShaderModule") == 0) return (PFN_vkVoidFunction)vkDestroyShaderModule;
     return nullptr;
 }
 
