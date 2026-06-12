@@ -29,6 +29,12 @@ void vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, const RenderPassBegin* 
 
 void vkCmdEndRenderPass(VkCommandBuffer commandBuffer) {}
 
+void vkCmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) {
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glDrawArrays(GL_TRIANGLES, firstVertex, vertexCount);
+}
+
 VkResult vkQueuePresentKHR(VkQueue queue, const void* pPresentInfo) {
     eglSwapBuffers(global_display, eglGetCurrentSurface(EGL_DRAW));
     return VK_SUCCESS;
