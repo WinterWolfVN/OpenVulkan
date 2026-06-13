@@ -115,20 +115,12 @@ void vkUpdateDescriptorSets(VkDevice device, uint32_t descriptorWriteCount, cons
     }
 }
 
-void vkCmdBindDescriptorSets(GLuint program, VkDescriptorSet set) {
-    auto* state = (VkDescriptorSet_T*)(uintptr_t)set;
-    for (auto const& [binding, res] : state->resources) {
-        if (res.type == GL_UNIFORM_BUFFER) {
-            GLuint blockIndex = glGetUniformBlockIndex(program, "GlobalData");
-            if (blockIndex != GL_INVALID_INDEX) {
-                glUniformBlockBinding(program, blockIndex, binding);
-                glBindBufferBase(GL_UNIFORM_BUFFER, binding, res.id);
-            }
-        } else if (res.type == GL_SAMPLER_2D) {
-            glActiveTexture(GL_TEXTURE0 + binding);
-            glBindTexture(GL_TEXTURE_2D, res.id);
-        }
-    }
+void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, uint32_t pipelineBindPoint, uint64_t layout, uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets, uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets) {
+    CommandBuffer& cmd = *(CommandBuffer*)commandBuffer;
+    Command c;
+    c.type = CMD_BIND_DESCRIPTOR_SETS;
+    c.descriptorSet = pDescriptorSets[0];
+    cmd.commands.push_back(c);
 }
 
 }
