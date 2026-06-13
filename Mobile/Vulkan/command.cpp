@@ -57,8 +57,13 @@ void vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t first, uint3
     if (count > 0) glBindBuffer(GL_ARRAY_BUFFER, (GLuint)pBuffers[0]);
 }
 
-void vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, uint64_t buffer, uint64_t offset, uint32_t indexType) {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)buffer);
+void vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkIndexType indexType) {
+    BufferContext* ctx = (BufferContext*)(uintptr_t)buffer;        
+    GLenum type = (indexType == VK_INDEX_TYPE_UINT16) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;        
+    CommandState* cmdState = (CommandState*)commandBuffer;
+    cmdState->indexBuffer = ctx->glBuffer;
+    cmdState->indexType = type;
+    cmdState->indexOffset = (GLintptr)offset;
 }
 
 void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, uint32_t bindPoint, uint32_t layout, uint32_t firstSet, uint32_t setCount, const uint64_t* pSets, uint32_t dynCount, const uint32_t* pDynOffsets) {}
@@ -70,7 +75,15 @@ void vkCmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t ins
 }
 
 void vkCmdDrawIndexed(VkCommandBuffer commandBuffer, uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance) {
-    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, (void*)(uintptr_t)firstIndex);
+    CommandState* cmdState = (CommandState*)commandBuffer;       
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cmdState->indexBuffer);
+    glDrawElementsInstanced(
+        GL_TRIANGLES, 
+        indexCount, 
+        cmdState->indexType, 
+        (void*)(cmdState->indexOffset + (firstIndex * (cmdState->indexType == GL_UNSIGNED_SHORT ? 2 : 4))), 
+        instanceCount
+    );
 }
 
 void vkCmdDrawIndirect(VkCommandBuffer commandBuffer, uint64_t buffer, uint64_t offset, uint32_t drawCount, uint32_t stride) {
