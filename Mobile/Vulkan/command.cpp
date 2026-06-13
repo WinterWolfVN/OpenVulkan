@@ -81,9 +81,23 @@ void vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, uint64_t buffer, ui
     glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void*)(uintptr_t)offset);
 }
 
-uint32_t vkQueueSubmit(void* queue, uint32_t submitCount, const void* pSubmits, void* fence) {
-    glFlush();
-    return VK_SUCCESS;
+void vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
+    for (uint32_t i = 0; i < submitCount; ++i) {        
+        CommandBuffer& cmd = *(CommandBuffer*)pSubmits[i].pCommandBuffers[0];                
+        for (auto& command : cmd.commands) {
+            switch(command.type) {
+                case CMD_BIND_PIPELINE:
+                    glBindProgramPipeline((GLuint)command.pipeline);
+                    break;
+                case CMD_BIND_VERTEX_BUFFERS:
+                    glBindVertexBuffer(0, (GLuint)command.buffer, command.offset, command.stride);
+                    break;
+                case CMD_DRAW:
+                    glDrawArrays(command.mode, command.first, command.count);
+                    break;
+            }
+        }
+    }
 }
 
 }
