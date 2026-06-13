@@ -95,6 +95,7 @@ void vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, uint64_t buffer, ui
 }
 
 void vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
+    glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);    
     for (uint32_t i = 0; i < submitCount; ++i) {        
         CommandBuffer& cmd = *(CommandBuffer*)pSubmits[i].pCommandBuffers[0];                
         for (auto& command : cmd.commands) {
@@ -105,12 +106,23 @@ void vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSub
                 case CMD_BIND_VERTEX_BUFFERS:
                     glBindVertexBuffer(0, (GLuint)command.buffer, command.offset, command.stride);
                     break;
+                case CMD_BIND_DESCRIPTOR_SETS:                    
+                    for (auto const& [binding, res] : ((VkDescriptorSet_T*)(uintptr_t)command.descriptorSet)->resources) {
+                        if (res.type == GL_UNIFORM_BUFFER) {
+                            glBindBufferBase(GL_UNIFORM_BUFFER, binding, res.id);
+                        } else if (res.type == GL_SAMPLER_2D) {
+                            glActiveTexture(GL_TEXTURE0 + binding);
+                            glBindTexture(GL_TEXTURE_2D, res.id);
+                        }
+                    }
+                    break;
                 case CMD_DRAW:
                     glDrawArrays(command.mode, command.first, command.count);
                     break;
             }
         }
     }
+    glFlush();
 }
 
 }
