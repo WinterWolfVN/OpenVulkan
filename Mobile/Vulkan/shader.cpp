@@ -16,45 +16,37 @@ struct ShaderModule {
 
 extern "C" {
 
-VkResult vkCreateShaderModule(VkDevice device, const void* pCreateInfo, const void* pAllocator, VkShaderModule* pShaderModule) {
-    const uint32_t* spirvCode = (const uint32_t*)((char*)pCreateInfo + 16);
-    size_t spirvSize = *(size_t*)((char*)pCreateInfo + 12) / 4;
+VkResult vkCreateShaderModule(VkDevice device, const VkShaderModuleCreateInfo* pCreateInfo, const void* pAllocator, VkShaderModule* pShaderModule) {
+    if (!pCreateInfo || !pShaderModule) return VK_ERROR_INITIALIZATION_FAILED;
 
-    spvc_context context = nullptr;
-    spvc_context_create(&context);
+    spirv_cross::CompilerGLSL glsl(pCreateInfo->pCode, pCreateInfo->codeSize / sizeof(uint32_t));
 
-    spvc_parsed_ir ir = nullptr;
-    spvc_context_parse_spirv(context, spirvCode, spirvSize, &ir);
+    spirv_cross::CompilerGLSL::Options options;
+    options.version = 310;
+    options.es = true;
+    glsl.set_common_options(options);
 
-    spvc_compiler compiler = nullptr;
-    spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler);
+    std::string source = glsl.compile();
+    const char* srcPtr = source.c_str();
 
-    spvc_compiler_options options = nullptr;
-    spvc_compiler_create_compiler_options(compiler, &options);
-    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 310);
-    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
-    spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_FALSE);
-    spvc_compiler_install_compiler_options(compiler, options);
+    GLuint shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(shader, 1, &srcPtr, NULL);
+    glCompileShader(shader);
 
-    const char* glslRaw = nullptr;
-    spvc_compiler_compile(compiler, &glslRaw);
+    GLint compiled;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+    if (!compiled) {
+        glDeleteShader(shader);
+        return VK_ERROR_INITIALIZATION_FAILED;
+    }
 
-    ShaderModule* module = (ShaderModule*)malloc(sizeof(ShaderModule));
-    module->glslSource = strdup(glslRaw);
-    module->shaderID = 0;
-
-    spvc_context_destroy(context);
-
-    *pShaderModule = (VkShaderModule)module;
+    *pShaderModule = (VkShaderModule)(uintptr_t)shader;
     return VK_SUCCESS;
 }
 
 void vkDestroyShaderModule(VkDevice device, VkShaderModule shaderModule, const void* pAllocator) {
-    if (shaderModule) {
-        ShaderModule* module = (ShaderModule*)shaderModule;
-        if (module->glslSource) free(module->glslSource);
-        if (module->shaderID) glDeleteShader(module->shaderID);
-        free(module);
+    if (shaderModule != VK_NULL_HANDLE) {
+        glDeleteShader((GLuint)(uintptr_t)shaderModule);
     }
 }
 
