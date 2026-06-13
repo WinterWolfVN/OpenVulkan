@@ -22,14 +22,22 @@ extern "C" {
 
 // --- Memory & Buffers ---
 VkResult vkCreateBuffer(VkDevice device, const void* pCreateInfo, const void* pAllocator, VkBuffer* pBuffer) {
-    GLuint bufferID;
-    glGenBuffers(1, &bufferID);
-    *pBuffer = (VkBuffer)bufferID;
+    if (!pBuffer) return 1;    
+    GLuint bufferID = 0;
+    glGenBuffers(1, &bufferID);        
+    BufferContext* ctx = (BufferContext*)malloc(sizeof(BufferContext));
+    ctx->glBuffer = bufferID;
+    ctx->size = 0; 
+    *pBuffer = (VkBuffer)(uintptr_t)ctx;
     return VK_SUCCESS;
 }
 
 void vkDestroyBuffer(VkDevice device, VkBuffer buffer, const void* pAllocator) {
-    glDeleteBuffers(1, (GLuint*)&buffer);
+    if (buffer) {
+        BufferContext* ctx = (BufferContext*)(uintptr_t)buffer;
+        glDeleteBuffers(1, &ctx->glBuffer); 
+        free(ctx);
+    }
 }
 
 VkResult vkAllocateMemory(VkDevice device, const void* pAllocateInfo, const void* pAllocator, VkDeviceMemory* pMemory) {
