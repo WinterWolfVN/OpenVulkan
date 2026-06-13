@@ -84,6 +84,14 @@ void vkUnmapMemory(VkDevice device, VkDeviceMemory memory) {
 }
 
 // --- Pipeline ---
+void vkCmdBindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) {   
+    auto& cmd = *(CommandBuffer*)commandBuffer;
+    Command c;
+    c.type = CMD_BIND_PIPELINE;
+    c.pipeline = (uintptr_t)pipeline;
+    cmd.commands.push_back(c);
+}
+
 VkResult vkCreatePipelineLayout(VkDevice device, const void* pCreateInfo, const void* pAllocator, VkPipelineLayout* pPipelineLayout) {
     if (pPipelineLayout) *pPipelineLayout = (VkPipelineLayout)1;
     return VK_SUCCESS;
