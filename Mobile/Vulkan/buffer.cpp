@@ -91,9 +91,28 @@ VkResult vkCreatePipelineLayout(VkDevice device, const void* pCreateInfo, const 
 
 void vkDestroyPipelineLayout(VkDevice device, VkPipelineLayout layout, const void* pAllocator) {}
 
-VkResult vkCreateGraphicsPipelines(VkDevice device, uint64_t pipelineCache, uint32_t createInfoCount, const void* pCreateInfos, const void* pAllocator, VkPipeline* pPipelines) {
-    if (pPipelines) *pPipelines = (VkPipeline)1;
-    return VK_SUCCESS;
+VkResult vkCreateGraphicsPipelines(VkDevice device, uint64_t cache, uint32_t count, const VkGraphicsPipelineCreateInfo* pCreateInfos, const void* pAlloc, uint64_t* pPipelines) {
+    if (!pCreateInfos || !pPipelines) return VK_ERROR_INITIALIZATION_FAILED;
+    for (uint32_t i = 0; i < count; ++i) {
+        const VkGraphicsPipelineCreateInfo& info = pCreateInfos[i];
+        GLuint pipeline;
+        glGenProgramPipelines(1, &pipeline);
+        for (uint32_t j = 0; j < info.stageCount; ++j) {
+            const VkPipelineShaderStageCreateInfo& stage = info.pStages[j];
+            GLuint shaderID = (GLuint)(uintptr_t)stage.module;
+            GLbitfield stageBit = (stage.stage == VK_SHADER_STAGE_VERTEX_BIT) ? GL_VERTEX_SHADER_BIT : GL_FRAGMENT_SHADER_BIT;
+            glUseProgramStages(pipeline, stageBit, shaderID);
+        }
+        glValidateProgramPipeline(pipeline);
+        GLint validated;
+        glGetProgramPipelineiv(pipeline, GL_VALIDATE_STATUS, &validated);        
+        if (validated == GL_FALSE) {
+            glDeleteProgramPipelines(1, &pipeline);
+            return VK_ERROR_UNKNOWN;
+        }
+        pPipelines[i] = (uint64_t)pipeline;
+    }
+    return VK_SUCCESS; 
 }
 
 void vkDestroyPipeline(VkDevice device, VkPipeline pipeline, const void* pAllocator) {}
