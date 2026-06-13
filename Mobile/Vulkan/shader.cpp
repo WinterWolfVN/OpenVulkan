@@ -2,15 +2,30 @@
 #include <spirv_cross/spirv_cross_c.h>
 #include <vector>
 #include <map>
+#include <string.h>
 
 typedef void* VkDevice;
 typedef uint32_t VkResult;
 typedef uint64_t VkShaderModule;
+typedef uint64_t VkDescriptorSetLayout;
+typedef uint64_t VkDescriptorPool;
 typedef uint64_t VkDescriptorSet;
 
+struct DescriptorInfo { uint32_t set; uint32_t binding; GLenum type; };
+struct ShaderModuleContext { GLuint shaderID; std::vector<DescriptorInfo> descriptors; };
+
+struct VkDescriptorSetLayout_T {
+    std::vector<DescriptorInfo> bindings;
+};
+
+struct VkDescriptorPool_T {
+    uint32_t maxSets;
+};
+
 struct DescriptorResource { GLenum type; GLuint id; };
-struct ShaderModuleContext { GLuint shaderID; std::vector<uint32_t> bindings; };
-struct DescriptorSetState { std::map<uint32_t, DescriptorResource> resources; };
+struct VkDescriptorSet_T {
+    std::map<uint32_t, DescriptorResource> resources;
+};
 
 extern "C" {
 
@@ -30,7 +45,10 @@ VkResult vkCreateShaderModule(VkDevice device, const void* pCreateInfo, const vo
 
     auto res = glsl.get_shader_resources();
     for (auto &r : res.uniform_buffers) {
-        ctx->bindings.push_back(glsl.get_decoration(r.id, spv::DecorationBinding));
+        ctx->descriptors.push_back({glsl.get_decoration(r.id, spv::DecorationDescriptorSet), glsl.get_decoration(r.id, spv::DecorationBinding), GL_UNIFORM_BUFFER});
+    }
+    for (auto &r : res.sampled_images) {
+        ctx->descriptors.push_back({glsl.get_decoration(r.id, spv::DecorationDescriptorSet), glsl.get_decoration(r.id, spv::DecorationBinding), GL_SAMPLER_2D});
     }
     
     *pShaderModule = (VkShaderModule)(uintptr_t)ctx;
@@ -44,21 +62,72 @@ void vkDestroyShaderModule(VkDevice device, VkShaderModule shaderModule, const v
 }
 
 // --- Descriptor Sets --- 
-VkDescriptorSet vkCreateDescriptorSet(VkDevice device) {
-    return (VkDescriptorSet)(uintptr_t)new DescriptorSetState();
+VkResult vkCreateDescriptorSetLayout(VkDevice device, const void* pCreateInfo, const void* pAllocator, VkDescriptorSetLayout* pSetLayout) {
+    auto* info = (const VkDescriptorSetLayoutCreateInfo*)pCreateInfo;
+    VkDescriptorSetLayout_T* layout = new VkDescriptorSetLayout_T();
+    for (uint32_t i = 0; i < info->bindingCount; ++i) {
+        const auto& b = info->pBindings[i];
+        GLenum glType = (b.descriptorType == 6) ? GL_UNIFORM_BUFFER : GL_SAMPLER_2D; 
+        layout->bindings.push_back({0, b.binding, glType});
+    }
+    *pSetLayout = (VkDescriptorSetLayout)(uintptr_t)layout;
+    return 0;
 }
 
-void vkUpdateDescriptorSets(VkDescriptorSet set, uint32_t binding, GLuint bufferID) {
-    auto* state = (DescriptorSetState*)(uintptr_t)set;
-    state->resources[binding] = {GL_UNIFORM_BUFFER, bufferID};
+void vkDestroyDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout descriptorSetLayout, const void* pAllocator) {
+    delete (VkDescriptorSetLayout_T*)(uintptr_t)descriptorSetLayout;
+}
+
+VkResult vkCreateDescriptorPool(VkDevice device, const void* pCreateInfo, const void* pAllocator, VkDescriptorPool* pDescriptorPool) {
+    auto* info = (const VkDescriptorPoolCreateInfo*)pCreateInfo;
+    VkDescriptorPool_T* pool = new VkDescriptorPool_T();
+    pool->maxSets = info->maxSets;
+    *pDescriptorPool = (VkDescriptorPool)(uintptr_t)pool;
+    return 0;
+}
+
+void vkDestroyDescriptorPool(VkDevice device, VkDescriptorPool descriptorPool, const void* pAllocator) {
+    delete (VkDescriptorPool_T*)(uintptr_t)descriptorPool;
+}
+
+VkResult vkAllocateDescriptorSets(VkDevice device, const void* pAllocateInfo, VkDescriptorSet* pDescriptorSets) {
+    auto* info = (const VkDescriptorSetAllocateInfo*)pAllocateInfo;
+    for (uint32_t i = 0; i < info->descriptorSetCount; ++i) {
+        pDescriptorSets[i] = (VkDescriptorSet)(uintptr_t)new VkDescriptorSet_T();
+    }
+    return 0;
+}
+
+void vkFreeDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets) {
+    for (uint32_t i = 0; i < descriptorSetCount; ++i) {
+        delete (VkDescriptorSet_T*)(uintptr_t)pDescriptorSets[i];
+    }
+}
+
+void vkUpdateDescriptorSets(VkDevice device, uint32_t descriptorWriteCount, const void* pDescriptorWrites, uint32_t descriptorCopyCount, const void* pDescriptorCopies) {
+    auto* writes = (const VkWriteDescriptorSet*)pDescriptorWrites;
+    for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
+        const auto& write = writes[i];
+        VkDescriptorSet_T* set = (VkDescriptorSet_T*)(uintptr_t)write.dstSet;
+        GLenum glType = (write.descriptorType == 6) ? GL_UNIFORM_BUFFER : GL_SAMPLER_2D;
+        GLuint resID = (glType == GL_UNIFORM_BUFFER) ? (GLuint)write.pBufferInfo->buffer : (GLuint)write.pImageInfo->imageView;
+        set->resources[write.dstBinding] = {glType, resID};
+    }
 }
 
 void vkCmdBindDescriptorSets(GLuint program, VkDescriptorSet set) {
-    auto* state = (DescriptorSetState*)(uintptr_t)set;
+    auto* state = (VkDescriptorSet_T*)(uintptr_t)set;
     for (auto const& [binding, res] : state->resources) {
-        GLuint blockIndex = glGetUniformBlockIndex(program, "GlobalData");
-        glUniformBlockBinding(program, blockIndex, binding);
-        glBindBufferBase(GL_UNIFORM_BUFFER, binding, res.id);
+        if (res.type == GL_UNIFORM_BUFFER) {
+            GLuint blockIndex = glGetUniformBlockIndex(program, "GlobalData");
+            if (blockIndex != GL_INVALID_INDEX) {
+                glUniformBlockBinding(program, blockIndex, binding);
+                glBindBufferBase(GL_UNIFORM_BUFFER, binding, res.id);
+            }
+        } else if (res.type == GL_SAMPLER_2D) {
+            glActiveTexture(GL_TEXTURE0 + binding);
+            glBindTexture(GL_TEXTURE_2D, res.id);
+        }
     }
 }
 
