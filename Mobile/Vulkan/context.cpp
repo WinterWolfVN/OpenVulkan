@@ -126,11 +126,13 @@ static PFN_vkVoidFunction get_vulkan_proc_addr(const char* pName) {
     // [Memory & Buffer System]
     if (strcmp(pName, "vkCreateBuffer") == 0) return (PFN_vkVoidFunction)vkCreateBuffer;
     if (strcmp(pName, "vkDestroyBuffer") == 0) return (PFN_vkVoidFunction)vkDestroyBuffer;
-    if (strcmp(pName, "vkGetBufferMemoryRequirements") == 0) return (PFN_vkVoidFunction)vkGetBufferMemoryRequirements;
     if (strcmp(pName, "vkAllocateMemory") == 0) return (PFN_vkVoidFunction)vkAllocateMemory;
+    if (strcmp(pName, "vkFreeMemory") == 0) return (PFN_vkVoidFunction)vkFreeMemory;
     if (strcmp(pName, "vkBindBufferMemory") == 0) return (PFN_vkVoidFunction)vkBindBufferMemory;
-    if (strcmp(pName, "vkMapMemory") == 0) return (PFN_vkVoidFunction)vkMapMemory;
-    if (strcmp(pName, "vkUnmapMemory") == 0) return (PFN_vkVoidFunction)vkUnmapMemory;
+    if (strcmp(pName, "vkMapMemory") == 0) return (PFN_vkVoidFunction)vkMapMemory;    
+    if (strcmp(pName, "vkUnmapMemory") == 0) return (PFN_vkVoidFunction)vkUnmapMemory;   
+    if (strcmp(pName, "vkCmdBindVertexBuffers") == 0) return (PFN_vkVoidFunction)vkCmdBindVertexBuffers;
+    if (strcmp(pName, "vkCmdBindIndexBuffer") == 0) return (PFN_vkVoidFunction)vkCmdBindIndexBuffer;
     
     // [Command & Drawing]
     if (strcmp(pName, "vkCmdBindVertexBuffers") == 0) return (PFN_vkVoidFunction)vkCmdBindVertexBuffers;
