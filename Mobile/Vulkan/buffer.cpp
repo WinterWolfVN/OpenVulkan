@@ -40,13 +40,14 @@ void vkDestroyBuffer(VkDevice device, VkBuffer buffer, const void* pAllocator) {
     }
 }
 
-VkResult vkAllocateMemory(VkDevice device, const void* pAllocateInfo, const void* pAllocator, VkDeviceMemory* pMemory) {
-    VkDeviceSize size = *(VkDeviceSize*)((char*)pAllocateInfo + 16);
-    FakeMemory* mem = (FakeMemory*)malloc(sizeof(FakeMemory));
-    mem->cpuData = malloc(size);
+VkResult vkAllocateMemory(VkDevice device, const void* pAllocateInfo, const void* pAllocator, VkDeviceMemory* pMemory) {    
+    VkDeviceSize size = *(VkDeviceSize*)((char*)pAllocateInfo + 16);    
+    MemoryBlock* mem = (MemoryBlock*)malloc(sizeof(MemoryBlock));
+    mem->cpuPtr = malloc(size); 
     mem->size = size;
-    mem->boundBufferID = 0;
-    *pMemory = (VkDeviceMemory)mem;
+    mem->boundGlBuffer = 0;     
+    
+    *pMemory = (VkDeviceMemory)(uintptr_t)mem;
     return VK_SUCCESS;
 }
 
@@ -58,21 +59,27 @@ void vkFreeMemory(VkDevice device, VkDeviceMemory memory, const void* pAllocator
     }
 }
 
-VkResult vkBindBufferMemory(VkDevice device, VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset) {
-    ((FakeMemory*)memory)->boundBufferID = (GLuint)buffer;
+VkResult vkBindBufferMemory(VkDevice device, VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset) {    
+    BufferContext* ctx = (BufferContext*)(uintptr_t)buffer;
+    MemoryBlock* mem = (MemoryBlock*)memory;    
+    mem->boundGlBuffer = ctx->glBuffer;
     return VK_SUCCESS;
 }
 
-VkResult vkMapMemory(VkDevice device, VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size, uint32_t flags, void** ppData) {
-    *ppData = (char*)((FakeMemory*)memory)->cpuData + offset;
+VkResult vkMapMemory(VkDevice device, VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size, uint32_t flags, void** ppData) {    
+    MemoryBlock* mem = (MemoryBlock*)memory;        
+    if (ppData) {
+        *ppData = (char*)mem->cpuPtr + offset;
+    }
+    
     return VK_SUCCESS;
 }
 
 void vkUnmapMemory(VkDevice device, VkDeviceMemory memory) {
-    FakeMemory* mem = (FakeMemory*)memory;
-    if (mem->boundBufferID != 0) {
-        glBindBuffer(GL_ARRAY_BUFFER, mem->boundBufferID);
-        glBufferData(GL_ARRAY_BUFFER, mem->size, mem->cpuData, GL_STATIC_DRAW);
+    MemoryBlock* mem = (MemoryBlock*)memory;        
+    if (mem->boundGlBuffer != 0) {        
+        glBindBuffer(GL_ARRAY_BUFFER, mem->boundGlBuffer);                
+        glBufferData(GL_ARRAY_BUFFER, mem->size, mem->cpuPtr, GL_STATIC_DRAW);
     }
 }
 
