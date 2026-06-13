@@ -15,8 +15,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkDestroyPipelineLayout", (PFN_vkDestroyPipelineLayout)vkDestroyPipelineLayout}, 
     {"vkCreateGraphicsPipelines", (PFN_vkVoidFunction)vkCreateGraphicsPipelines},
     {"vkDestroyPipeline", (PFN_vkDestroyPipeline)vkDestroyPipeline},
-    {"vkCmdBindPipeline", (PFN_vkVoidFunction)(PFN_vkCmdBindPipeline)vkCmdBindPipeline},
-
+    
     // [command.cpp]
     {"vkCreateCommandPool", (PFN_vkVoidFunction)(PFN_vkCreateCommandPool)vkCreateCommandPool},
     {"vkDestroyCommandPool", (PFN_vkVoidFunction)(PFN_vkDestroyCommandPool)vkDestroyCommandPool},
@@ -36,6 +35,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkCmdDrawIndexed", (PFN_vkVoidFunction)(PFN_vkCmdDrawIndexed)vkCmdDrawIndexed},
     {"vkCmdDrawIndirect", (PFN_vkVoidFunction)(PFN_vkCmdDrawIndirect)vkCmdDrawIndirect},
     {"vkCmdDrawIndexedIndirect", (PFN_vkVoidFunction)(PFN_vkCmdDrawIndexedIndirect)vkCmdDrawIndexedIndirect},
+    {"vkCmdBindPipeline", (PFN_vkVoidFunction)(PFN_vkCmdBindPipeline)vkCmdBindPipeline},
     {"vkQueueSubmit", (PFN_vkVoidFunction)(PFN_vkQueueSubmit)vkQueueSubmit},
 
     // [shader.cpp]
