@@ -115,47 +115,53 @@ extern void vkCmdEndRenderPass(void* commandBuffer);
 extern VkResult vkAcquireNextImageKHR(void* device, void* swapchain, uint64_t timeout, void* sem, void* fence, uint32_t* pIndex);
 extern void vkCmdDraw(void* commandBuffer, uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
 
-static PFN_vkVoidFunction get_vulkan_proc_addr(const char* pName) {
-    if (strcmp(pName, "vkCreateInstance") == 0) return (PFN_vkVoidFunction)vkCreateInstance;
-    if (strcmp(pName, "vkCreateDevice") == 0) return (PFN_vkVoidFunction)vkCreateDevice;
-    if (strcmp(pName, "vkEnumeratePhysicalDevices") == 0) return (PFN_vkVoidFunction)vkEnumeratePhysicalDevices;
-    if (strcmp(pName, "vkGetPhysicalDeviceProperties") == 0) return (PFN_vkVoidFunction)vkGetPhysicalDeviceProperties;
-    if (strcmp(pName, "vkGetPhysicalDeviceMemoryProperties") == 0) return (PFN_vkVoidFunction)vkGetPhysicalDeviceMemoryProperties;
-
+static PFN_vkVoidFunction get_vulkan_proc_addr(const char* pName) {        
+    // --- [Buffer.cpp] ---
     if (strcmp(pName, "vkCreateBuffer") == 0) return (PFN_vkVoidFunction)vkCreateBuffer;
-    if (strcmp(pName, "vkDestroyBuffer") == 0) return (PFN_vkVoidFunction)vkDestroyBuffer;
-    if (strcmp(pName, "vkAllocateMemory") == 0) return (PFN_vkVoidFunction)vkAllocateMemory;
-    if (strcmp(pName, "vkFreeMemory") == 0) return (PFN_vkVoidFunction)vkFreeMemory;
-    if (strcmp(pName, "vkBindBufferMemory") == 0) return (PFN_vkVoidFunction)vkBindBufferMemory;
-    if (strcmp(pName, "vkMapMemory") == 0) return (PFN_vkVoidFunction)vkMapMemory;
-    if (strcmp(pName, "vkUnmapMemory") == 0) return (PFN_vkVoidFunction)vkUnmapMemory;
+    if (strcmp(pName, "vkDestroyBuffer") == 0) return (PFN_vkDestroyBuffer)vkDestroyBuffer;
+    if (strcmp(pName, "vkAllocateMemory") == 0) return (PFN_vkAllocateMemory)vkAllocateMemory;
+    if (strcmp(pName, "vkFreeMemory") == 0) return (PFN_vkFreeMemory)vkFreeMemory;
+    if (strcmp(pName, "vkBindBufferMemory") == 0) return (PFN_vkBindBufferMemory)vkBindBufferMemory;
+    if (strcmp(pName, "vkMapMemory") == 0) return (PFN_vkMapMemory)vkMapMemory;
+    if (strcmp(pName, "vkUnmapMemory") == 0) return (PFN_vkUnmapMemory)vkUnmapMemory;
 
-    if (strcmp(pName, "vkCreateCommandPool") == 0) return (PFN_vkVoidFunction)vkCreateCommandPool;
-    if (strcmp(pName, "vkDestroyCommandPool") == 0) return (PFN_vkVoidFunction)vkDestroyCommandPool;
-    if (strcmp(pName, "vkAllocateCommandBuffers") == 0) return (PFN_vkVoidFunction)vkAllocateCommandBuffers;
-    if (strcmp(pName, "vkFreeCommandBuffers") == 0) return (PFN_vkVoidFunction)vkFreeCommandBuffers;
-    if (strcmp(pName, "vkBeginCommandBuffer") == 0) return (PFN_vkVoidFunction)vkBeginCommandBuffer;
-    if (strcmp(pName, "vkEndCommandBuffer") == 0) return (PFN_vkVoidFunction)vkEndCommandBuffer;
-    if (strcmp(pName, "vkResetCommandBuffer") == 0) return (PFN_vkVoidFunction)vkResetCommandBuffer;
-    if (strcmp(pName, "vkResetCommandPool") == 0) return (PFN_vkVoidFunction)vkResetCommandPool;
+    // --- [Command.cpp] ---
+    if (strcmp(pName, "vkCreateCommandPool") == 0) return (PFN_vkCreateCommandPool)vkCreateCommandPool;
+    if (strcmp(pName, "vkDestroyCommandPool") == 0) return (PFN_vkDestroyCommandPool)vkDestroyCommandPool;
+    if (strcmp(pName, "vkAllocateCommandBuffers") == 0) return (PFN_vkAllocateCommandBuffers)vkAllocateCommandBuffers;
+    if (strcmp(pName, "vkFreeCommandBuffers") == 0) return (PFN_vkFreeCommandBuffers)vkFreeCommandBuffers;
+    if (strcmp(pName, "vkBeginCommandBuffer") == 0) return (PFN_vkBeginCommandBuffer)vkBeginCommandBuffer;
+    if (strcmp(pName, "vkEndCommandBuffer") == 0) return (PFN_vkEndCommandBuffer)vkEndCommandBuffer;
+    if (strcmp(pName, "vkResetCommandBuffer") == 0) return (PFN_vkResetCommandBuffer)vkResetCommandBuffer;
+    if (strcmp(pName, "vkResetCommandPool") == 0) return (PFN_vkResetCommandPool)vkResetCommandPool;
+    if (strcmp(pName, "vkQueueSubmit") == 0) return (PFN_vkQueueSubmit)vkQueueSubmit;    
+    if (strcmp(pName, "vkCmdBeginRenderPass") == 0) return (PFN_vkCmdBeginRenderPass)vkCmdBeginRenderPass;
+    if (strcmp(pName, "vkCmdEndRenderPass") == 0) return (PFN_vkCmdEndRenderPass)vkCmdEndRenderPass;
+    if (strcmp(pName, "vkCmdBindPipeline") == 0) return (PFN_vkCmdBindPipeline)vkCmdBindPipeline;
+    if (strcmp(pName, "vkCmdBindVertexBuffers") == 0) return (PFN_vkCmdBindVertexBuffers)vkCmdBindVertexBuffers;
+    if (strcmp(pName, "vkCmdBindIndexBuffer") == 0) return (PFN_vkCmdBindIndexBuffer)vkCmdBindIndexBuffer;
+    if (strcmp(pName, "vkCmdBindDescriptorSets") == 0) return (PFN_vkCmdBindDescriptorSets)vkCmdBindDescriptorSets;
+    if (strcmp(pName, "vkCmdSetViewport") == 0) return (PFN_vkCmdSetViewport)vkCmdSetViewport;
+    if (strcmp(pName, "vkCmdSetScissor") == 0) return (PFN_vkCmdSetScissor)vkCmdSetScissor;
+    if (strcmp(pName, "vkCmdDraw") == 0) return (PFN_vkCmdDraw)vkCmdDraw;
+    if (strcmp(pName, "vkCmdDrawIndexed") == 0) return (PFN_vkCmdDrawIndexed)vkCmdDrawIndexed;
+    if (strcmp(pName, "vkCmdDrawIndirect") == 0) return (PFN_vkCmdDrawIndirect)vkCmdDrawIndirect;
+    if (strcmp(pName, "vkCmdDrawIndexedIndirect") == 0) return (PFN_vkCmdDrawIndexedIndirect)vkCmdDrawIndexedIndirect;
 
-    if (strcmp(pName, "vkCmdBindPipeline") == 0) return (PFN_vkVoidFunction)vkCmdBindPipeline;
-    if (strcmp(pName, "vkCmdBindVertexBuffers") == 0) return (PFN_vkVoidFunction)vkCmdBindVertexBuffers;
-    if (strcmp(pName, "vkCmdBindIndexBuffer") == 0) return (PFN_vkVoidFunction)vkCmdBindIndexBuffer;
-    if (strcmp(pName, "vkCmdBindDescriptorSets") == 0) return (PFN_vkVoidFunction)vkCmdBindDescriptorSets;
-    if (strcmp(pName, "vkCmdSetViewport") == 0) return (PFN_vkVoidFunction)vkCmdSetViewport;
-    if (strcmp(pName, "vkCmdSetScissor") == 0) return (PFN_vkVoidFunction)vkCmdSetScissor;
-    if (strcmp(pName, "vkCmdDraw") == 0) return (PFN_vkVoidFunction)vkCmdDraw;
-    if (strcmp(pName, "vkCmdDrawIndexed") == 0) return (PFN_vkVoidFunction)vkCmdDrawIndexed;
-    
-    if (strcmp(pName, "vkCmdBeginRenderPass") == 0) return (PFN_vkVoidFunction)vkCmdBeginRenderPass;
-    if (strcmp(pName, "vkCmdEndRenderPass") == 0) return (PFN_vkVoidFunction)vkCmdEndRenderPass;
+    // --- [Shader.cpp] ---
+    if (strcmp(pName, "vkCreateShaderModule") == 0) return (PFN_vkCreateShaderModule)vkCreateShaderModule;
+    if (strcmp(pName, "vkDestroyShaderModule") == 0) return (PFN_vkDestroyShaderModule)vkDestroyShaderModule;
 
-    if (strcmp(pName, "vkCreateShaderModule") == 0) return (PFN_vkVoidFunction)vkCreateShaderModule;
-    if (strcmp(pName, "vkDestroyShaderModule") == 0) return (PFN_vkVoidFunction)vkDestroyShaderModule;
-    if (strcmp(pName, "vkQueuePresentKHR") == 0) return (PFN_vkVoidFunction)vkQueuePresentKHR;
-    if (strcmp(pName, "vkAcquireNextImageKHR") == 0) return (PFN_vkVoidFunction)vkAcquireNextImageKHR;
-    
+    // --- [Screen.cpp] ---
+    if (strcmp(pName, "vkQueuePresentKHR") == 0) return (PFN_vkQueuePresentKHR)vkQueuePresentKHR;
+    if (strcmp(pName, "vkAcquireNextImageKHR") == 0) return (PFN_vkAcquireNextImageKHR)vkAcquireNextImageKHR;
+
+    // --- [Vulkan_layer.cpp & Context.cpp] ---
+    if (strcmp(pName, "vkCreateInstance") == 0) return (PFN_vkCreateInstance)vkCreateInstance;
+    if (strcmp(pName, "vkCreateDevice") == 0) return (PFN_vkCreateDevice)vkCreateDevice;
+    if (strcmp(pName, "vkEnumeratePhysicalDevices") == 0) return (PFN_vkEnumeratePhysicalDevices)vkEnumeratePhysicalDevices;
+    if (strcmp(pName, "vkGetPhysicalDeviceProperties") == 0) return (PFN_vkGetPhysicalDeviceProperties)vkGetPhysicalDeviceProperties;
+    if (strcmp(pName, "vkGetPhysicalDeviceMemoryProperties") == 0) return (PFN_vkGetPhysicalDeviceMemoryProperties)vkGetPhysicalDeviceMemoryProperties;
     return nullptr;
 }
 
