@@ -157,14 +157,6 @@ void vkCmdEndRenderPass(VkCommandBuffer commandBuffer) {
     cmd.commands.push_back(c);
 }
 
-void vkCmdBindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) {   
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    Command c;
-    c.type = CMD_BIND_PIPELINE;
-    c.pipeline = (uintptr_t)pipeline;
-    cmd.commands.push_back(c);
-}
-
 void vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t first, uint32_t count, const uint64_t* pBuffers, const uint64_t* pOffsets) {
     if (count > 0) {
         auto& cmd = *(CommandBuffer*)commandBuffer;
