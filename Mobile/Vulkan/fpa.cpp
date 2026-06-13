@@ -26,8 +26,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkResetCommandBuffer", (PFN_vkVoidFunction)(PFN_vkResetCommandBuffer)vkResetCommandBuffer},
     {"vkResetCommandPool", (PFN_vkVoidFunction)(PFN_vkResetCommandPool)vkResetCommandPool},
     {"vkCmdBeginRenderPass", (PFN_vkVoidFunction)(PFN_vkCmdBeginRenderPass)vkCmdBeginRenderPass},
-    {"vkCmdEndRenderPass", (PFN_vkVoidFunction)(PFN_vkCmdEndRenderPass)vkCmdEndRenderPass},
-    {"vkCmdBindPipeline", (PFN_vkVoidFunction)(PFN_vkCmdBindPipeline)vkCmdBindPipeline},
+    {"vkCmdEndRenderPass", (PFN_vkVoidFunction)(PFN_vkCmdEndRenderPass)vkCmdEndRenderPass},    
     {"vkCmdBindVertexBuffers", (PFN_vkVoidFunction)(PFN_vkCmdBindVertexBuffers)vkCmdBindVertexBuffers},
     {"vkCmdBindIndexBuffer", (PFN_vkVoidFunction)(PFN_vkCmdBindIndexBuffer)vkCmdBindIndexBuffer},    
     {"vkCmdSetViewport", (PFN_vkVoidFunction)(PFN_vkCmdSetViewport)vkCmdSetViewport},
@@ -49,6 +48,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkFreeDescriptorSets", (PFN_vkVoidFunction)(PFN_vkFreeDescriptorSets)vkFreeDescriptorSets},
     {"vkUpdateDescriptorSets", (PFN_vkVoidFunction)(PFN_vkUpdateDescriptorSets)vkUpdateDescriptorSets},
     {"vkCmdBindDescriptorSets", (PFN_vkVoidFunction)(PFN_vkCmdBindDescriptorSets)vkCmdBindDescriptorSets},
+    {"vkCmdBindPipeline", (PFN_vkVoidFunction)(PFN_vkCmdBindPipeline)vkCmdBindPipeline},
 
     // [screen.cpp]
     {"vkCreateSwapchainKHR", (PFN_vkVoidFunction)vkCreateSwapchainKHR}, 
