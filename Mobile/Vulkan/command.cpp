@@ -219,6 +219,14 @@ void vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, uint64_t buffer, ui
     cmd.commands.push_back(c);
 }
 
+void vkCmdBindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) {   
+    auto& cmd = *(CommandBuffer*)commandBuffer;
+    Command c;
+    c.type = CMD_BIND_PIPELINE;
+    c.pipeline = (uintptr_t)pipeline;
+    cmd.commands.push_back(c);
+}
+
 void vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
     glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);    
     for (uint32_t i = 0; i < submitCount; ++i) {        
