@@ -57,15 +57,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkGetSwapchainImagesKHR", (PFN_vkVoidFunction)vkGetSwapchainImagesKHR}, 
     {"vkAcquireNextImageKHR", (PFN_vkVoidFunction)vkAcquireNextImageKHR},
     {"vkQueuePresentKHR", (PFN_vkVoidFunction)vkQueuePresentKHR},
-
-    // [descriptor.cpp]
-    {"vkCreateDescriptorSetLayout", (PFN_vkVoidFunction)vkCreateDescriptorSetLayout},
-    {"vkDestroyDescriptorSetLayout", (PFN_vkVoidFunction)vkDestroyDescriptorSetLayout},
-    {"vkCreateDescriptorPool", (PFN_vkVoidFunction)vkCreateDescriptorPool}, 
-    {"vkDestroyDescriptorPool", (PFN_vkDestroyDescriptorPool)vkDestroyDescriptorPool},
-    {"vkAllocateDescriptorSets", (PFN_vkVoidFunction)vkAllocateDescriptorSets}, 
-    {"vkFreeDescriptorSets", (PFN_vkVoidFunction)vkFreeDescriptorSets},
-
+    
     // [vulkan_layer.cpp]
     {"vkCreateInstance", (PFN_vkCreateInstance)vkCreateInstance}, 
     {"vkCreateDevice", (PFN_vkCreateDevice)vkCreateDevice},
