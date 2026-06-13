@@ -32,6 +32,17 @@ enum CommandType {
     CMD_END_RENDER_PASS
 };
 
+enum CommandType { BIND_PIPELINE, BIND_DESCRIPTOR, DRAW };
+struct Command {
+    CommandType type;
+    unsigned int programID;
+    unsigned int vaoID;
+};
+
+struct FakeCommandBuffer {
+    std::vector<Command> commands;
+};
+
 struct DescriptorResource {
     GLenum type;
     GLuint id;
@@ -225,6 +236,13 @@ void vkCmdBindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipeli
     c.type = CMD_BIND_PIPELINE;
     c.pipeline = (uintptr_t)pipeline;
     cmd.commands.push_back(c);
+}
+
+void RecordGraphicsCommands(FakeCommandBuffer& cmdBuf, unsigned int programID, unsigned int vaoID) {
+    cmdBuf.commands.clear();
+    cmdBuf.commands.push_back({BIND_PIPELINE, programID, 0});
+    cmdBuf.commands.push_back({BIND_DESCRIPTOR, 0, vaoID});
+    cmdBuf.commands.push_back({DRAW, 0, 0});
 }
 
 void vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
