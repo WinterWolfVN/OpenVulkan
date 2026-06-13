@@ -61,7 +61,7 @@ void vkDestroyShaderModule(VkDevice device, VkShaderModule shaderModule, const v
     delete ctx;
 }
 
-// --- Descriptor Sets --- 
+// --- Descriptor Sets & Pipeline --- 
 VkResult vkCreateDescriptorSetLayout(VkDevice device, const void* pCreateInfo, const void* pAllocator, VkDescriptorSetLayout* pSetLayout) {
     auto* info = (const VkDescriptorSetLayoutCreateInfo*)pCreateInfo;
     VkDescriptorSetLayout_T* layout = new VkDescriptorSetLayout_T();
@@ -120,6 +120,14 @@ void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, uint32_t pipelineBin
     Command c;
     c.type = CMD_BIND_DESCRIPTOR_SETS;
     c.descriptorSet = pDescriptorSets[0];
+    cmd.commands.push_back(c);
+}
+
+void vkCmdBindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) {   
+    auto& cmd = *(CommandBuffer*)commandBuffer;
+    Command c;
+    c.type = CMD_BIND_PIPELINE;
+    c.pipeline = (uintptr_t)pipeline;
     cmd.commands.push_back(c);
 }
 
