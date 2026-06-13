@@ -15,6 +15,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkDestroyPipelineLayout", (PFN_vkDestroyPipelineLayout)vkDestroyPipelineLayout}, 
     {"vkCreateGraphicsPipelines", (PFN_vkVoidFunction)vkCreateGraphicsPipelines},
     {"vkDestroyPipeline", (PFN_vkDestroyPipeline)vkDestroyPipeline},
+    {"vkCmdBindPipeline", (PFN_vkVoidFunction)(PFN_vkCmdBindPipeline)vkCmdBindPipeline},
 
     // [command.cpp]
     {"vkCreateCommandPool", (PFN_vkVoidFunction)(PFN_vkCreateCommandPool)vkCreateCommandPool},
@@ -48,8 +49,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkFreeDescriptorSets", (PFN_vkVoidFunction)(PFN_vkFreeDescriptorSets)vkFreeDescriptorSets},
     {"vkUpdateDescriptorSets", (PFN_vkVoidFunction)(PFN_vkUpdateDescriptorSets)vkUpdateDescriptorSets},
     {"vkCmdBindDescriptorSets", (PFN_vkVoidFunction)(PFN_vkCmdBindDescriptorSets)vkCmdBindDescriptorSets},
-    {"vkCmdBindPipeline", (PFN_vkVoidFunction)(PFN_vkCmdBindPipeline)vkCmdBindPipeline},
-
+    
     // [screen.cpp]
     {"vkCreateSwapchainKHR", (PFN_vkVoidFunction)vkCreateSwapchainKHR}, 
     {"vkDestroySwapchainKHR", (PFN_vkVoidFunction)vkDestroySwapchainKHR},
