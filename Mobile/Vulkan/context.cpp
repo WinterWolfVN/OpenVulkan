@@ -124,6 +124,10 @@ static PFN_vkVoidFunction get_vulkan_proc_addr(const char* pName) {
     if (strcmp(pName, "vkBindBufferMemory") == 0) return (PFN_vkBindBufferMemory)vkBindBufferMemory;
     if (strcmp(pName, "vkMapMemory") == 0) return (PFN_vkMapMemory)vkMapMemory;
     if (strcmp(pName, "vkUnmapMemory") == 0) return (PFN_vkUnmapMemory)vkUnmapMemory;
+    if (strcmp(pName, "vkCreatePipelineLayout") == 0) return (PFN_vkVoidFunction)vkCreatePipelineLayout;
+    if (strcmp(pName, "vkDestroyPipelineLayout") == 0) return (PFN_vkVoidFunction)vkDestroyPipelineLayout;
+    if (strcmp(pName, "vkCreateGraphicsPipelines") == 0) return (PFN_vkVoidFunction)vkCreateGraphicsPipelines;
+    if (strcmp(pName, "vkDestroyPipeline") == 0) return (PFN_vkVoidFunction)vkDestroyPipeline;
 
     // --- [Command.cpp] ---
     if (strcmp(pName, "vkCreateCommandPool") == 0) return (PFN_vkCreateCommandPool)vkCreateCommandPool;
