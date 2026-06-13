@@ -156,6 +156,15 @@ static PFN_vkVoidFunction get_vulkan_proc_addr(const char* pName) {
     if (strcmp(pName, "vkQueuePresentKHR") == 0) return (PFN_vkQueuePresentKHR)vkQueuePresentKHR;
     if (strcmp(pName, "vkAcquireNextImageKHR") == 0) return (PFN_vkAcquireNextImageKHR)vkAcquireNextImageKHR;
 
+    // --- [Descriptor.cpp] ---
+    if (strcmp(pName, "vkCreateDescriptorSetLayout") == 0) return (PFN_vkVoidFunction)vkCreateDescriptorSetLayout;
+    if (strcmp(pName, "vkDestroyDescriptorSetLayout") == 0) return (PFN_vkVoidFunction)vkDestroyDescriptorSetLayout;
+    if (strcmp(pName, "vkCreateDescriptorPool") == 0) return (PFN_vkVoidFunction)vkCreateDescriptorPool;
+    if (strcmp(pName, "vkDestroyDescriptorPool") == 0) return (PFN_vkVoidFunction)vkDestroyDescriptorPool;
+    if (strcmp(pName, "vkAllocateDescriptorSets") == 0) return (PFN_vkVoidFunction)vkAllocateDescriptorSets;
+    if (strcmp(pName, "vkFreeDescriptorSets") == 0) return (PFN_vkVoidFunction)vkFreeDescriptorSets;
+    if (strcmp(pName, "vkUpdateDescriptorSets") == 0) return (PFN_vkVoidFunction)vkUpdateDescriptorSets;
+    
     // --- [Vulkan_layer.cpp & Context.cpp] ---
     if (strcmp(pName, "vkCreateInstance") == 0) return (PFN_vkCreateInstance)vkCreateInstance;
     if (strcmp(pName, "vkCreateDevice") == 0) return (PFN_vkCreateDevice)vkCreateDevice;
