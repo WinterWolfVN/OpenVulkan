@@ -49,27 +49,34 @@ void vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, const void* pRenderPass
 
 void vkCmdEndRenderPass(VkCommandBuffer commandBuffer) { glFlush(); }
 
-void vkCmdBindPipeline(VkCommandBuffer commandBuffer, uint32_t pipelineBindPoint, uint32_t pipeline) {}
+void vkCmdBindPipeline(VkCommandBuffer cmd, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) {   
+    glBindProgramPipeline((GLuint)pipeline);
+}
+
 void vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t first, uint32_t count, const uint64_t* pBuffers, const uint64_t* pOffsets) {
     if (count > 0) glBindBuffer(GL_ARRAY_BUFFER, (GLuint)pBuffers[0]);
 }
+
 void vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, uint64_t buffer, uint64_t offset, uint32_t indexType) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)buffer);
 }
-void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, uint32_t bindPoint, uint32_t layout, uint32_t firstSet, uint32_t setCount, const uint64_t* pSets, uint32_t dynCount, const uint32_t* pDynOffsets) {}
 
+void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, uint32_t bindPoint, uint32_t layout, uint32_t firstSet, uint32_t setCount, const uint64_t* pSets, uint32_t dynCount, const uint32_t* pDynOffsets) {}
 void vkCmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstViewport, uint32_t viewportCount, const void* pViewports) {}
 void vkCmdSetScissor(VkCommandBuffer commandBuffer, uint32_t firstScissor, uint32_t scissorCount, const void* pScissors) {}
 
 void vkCmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) {
     glDrawArrays(GL_TRIANGLES, firstVertex, vertexCount);
 }
+
 void vkCmdDrawIndexed(VkCommandBuffer commandBuffer, uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance) {
     glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, (void*)(uintptr_t)firstIndex);
 }
+
 void vkCmdDrawIndirect(VkCommandBuffer commandBuffer, uint64_t buffer, uint64_t offset, uint32_t drawCount, uint32_t stride) {
     glDrawArraysIndirect(GL_TRIANGLES, (const void*)(uintptr_t)offset);
 }
+
 void vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, uint64_t buffer, uint64_t offset, uint32_t drawCount, uint32_t stride) {
     glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void*)(uintptr_t)offset);
 }
