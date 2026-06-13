@@ -8,6 +8,22 @@ typedef uint32_t VkResult;
 
 #define VK_SUCCESS 0
 
+enum CommandType {
+    CMD_BIND_PIPELINE,
+    CMD_BIND_VERTEX_BUFFERS,
+    CMD_BIND_DESCRIPTOR_SETS,
+    CMD_DRAW
+};
+
+struct CommandBuffer {
+    std::vector<Command> commands;
+    bool isRecording;
+};
+
+struct VkCommandPool_T {
+    std::vector<CommandBuffer*> allocatedBuffers;
+};
+
 struct FakeCmdAllocInfo {
     uint32_t sType;
     const void* pNext;
@@ -20,25 +36,62 @@ extern "C" {
 
 // --- Command Pool & Buffers ---
 VkResult vkCreateCommandPool(VkDevice device, const void* pCreateInfo, const void* pAllocator, VkCommandPool* pCommandPool) {
-    if (pCommandPool) *pCommandPool = (VkCommandPool)1;
-    return VK_SUCCESS;
+    *pCommandPool = (VkCommandPool)(uintptr_t)new VkCommandPool_T();
+    return 0;
 }
 
-void vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool, const void* pAllocator) {}
+void vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool, const void* pAllocator) {
+    auto* pool = (VkCommandPool_T*)(uintptr_t)commandPool;
+    if (pool) {
+        for (auto* buf : pool->allocatedBuffers) {
+            delete buf;
+        }
+        delete pool;
+    }
+}
 
 VkResult vkAllocateCommandBuffers(VkDevice device, const void* pAllocateInfo, VkCommandBuffer* pCommandBuffers) {
-    if (!pAllocateInfo || !pCommandBuffers) return VK_SUCCESS;
-    const FakeCmdAllocInfo* info = (const FakeCmdAllocInfo*)pAllocateInfo;
-    for (uint32_t i = 0; i < info->commandBufferCount; ++i) {
-        pCommandBuffers[i] = (VkCommandBuffer)(uintptr_t)(i + 1);
+    auto* raw = (const uint32_t*)pAllocateInfo;
+    VkCommandPool poolHandle = *(const VkCommandPool*)(raw + 4); 
+    uint32_t count = *(raw + 7);
+    auto* pool = (VkCommandPool_T*)(uintptr_t)poolHandle;
+    for (uint32_t i = 0; i < count; ++i) {
+        auto* buf = new CommandBuffer();
+        buf->isRecording = false;
+        pool->allocatedBuffers.push_back(buf);
+        pCommandBuffers[i] = (VkCommandBuffer)(uintptr_t)buf;
     }
-    return VK_SUCCESS;
+    return 0;
 }
 
-void vkFreeCommandBuffers(VkDevice device, VkCommandPool commandPool, uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers) {}
+void vkFreeCommandBuffers(VkDevice device, VkCommandPool commandPool, uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers) {
+    auto* pool = (VkCommandPool_T*)(uintptr_t)commandPool;
+    if (!pool) return;
+    for (uint32_t i = 0; i < commandBufferCount; ++i) {
+        auto* buf = (CommandBuffer*)(uintptr_t)pCommandBuffers[i];
+        for (auto it = pool->allocatedBuffers.begin(); it != pool->allocatedBuffers.end(); ++it) {
+            if (*it == buf) {
+                delete buf;
+                pool->allocatedBuffers.erase(it);
+                break;
+            }
+        }
+    }
+}
 
-VkResult vkBeginCommandBuffer(VkCommandBuffer commandBuffer, const void* pBeginInfo) { return VK_SUCCESS; }
-VkResult vkEndCommandBuffer(VkCommandBuffer commandBuffer) { return VK_SUCCESS; }
+VkResult vkBeginCommandBuffer(VkCommandBuffer commandBuffer, const void* pBeginInfo) {
+    auto& cmd = *(CommandBuffer*)commandBuffer;
+    cmd.commands.clear();
+    cmd.isRecording = true;
+    return 0;
+}
+
+VkResult vkEndCommandBuffer(VkCommandBuffer commandBuffer) {
+    auto& cmd = *(CommandBuffer*)commandBuffer;
+    cmd.isRecording = false;
+    return 0;
+}
+
 VkResult vkResetCommandBuffer(VkCommandBuffer commandBuffer, uint32_t flags) { return VK_SUCCESS; }
 VkResult vkResetCommandPool(VkDevice device, VkCommandPool commandPool, uint32_t flags) { return VK_SUCCESS; }
 
@@ -66,7 +119,6 @@ void vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDevi
     cmdState->indexOffset = (GLintptr)offset;
 }
 
-void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, uint32_t bindPoint, uint32_t layout, uint32_t firstSet, uint32_t setCount, const uint64_t* pSets, uint32_t dynCount, const uint32_t* pDynOffsets) {}
 void vkCmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstViewport, uint32_t viewportCount, const void* pViewports) {}
 void vkCmdSetScissor(VkCommandBuffer commandBuffer, uint32_t firstScissor, uint32_t scissorCount, const void* pScissors) {}
 
