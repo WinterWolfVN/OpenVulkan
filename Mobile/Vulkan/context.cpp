@@ -157,9 +157,12 @@ static PFN_vkVoidFunction get_vulkan_proc_addr(const char* pName) {
     if (strcmp(pName, "vkDestroyShaderModule") == 0) return (PFN_vkDestroyShaderModule)vkDestroyShaderModule;
 
     // --- [Screen.cpp] ---
-    if (strcmp(pName, "vkQueuePresentKHR") == 0) return (PFN_vkQueuePresentKHR)vkQueuePresentKHR;
-    if (strcmp(pName, "vkAcquireNextImageKHR") == 0) return (PFN_vkAcquireNextImageKHR)vkAcquireNextImageKHR;
-
+    if (strcmp(pName, "vkCreateSwapchainKHR") == 0) return (PFN_vkVoidFunction)vkCreateSwapchainKHR;
+    if (strcmp(pName, "vkDestroySwapchainKHR") == 0) return (PFN_vkVoidFunction)vkDestroySwapchainKHR;
+    if (strcmp(pName, "vkGetSwapchainImagesKHR") == 0) return (PFN_vkVoidFunction)vkGetSwapchainImagesKHR;
+    if (strcmp(pName, "vkAcquireNextImageKHR") == 0) return (PFN_vkVoidFunction)vkAcquireNextImageKHR;
+    if (strcmp(pName, "vkQueuePresentKHR") == 0) return (PFN_vkVoidFunction)vkQueuePresentKHR;
+    
     // --- [Descriptor.cpp] ---
     if (strcmp(pName, "vkCreateDescriptorSetLayout") == 0) return (PFN_vkVoidFunction)vkCreateDescriptorSetLayout;
     if (strcmp(pName, "vkDestroyDescriptorSetLayout") == 0) return (PFN_vkVoidFunction)vkDestroyDescriptorSetLayout;
