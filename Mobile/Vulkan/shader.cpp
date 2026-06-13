@@ -1,8 +1,15 @@
 #include <GLES3/gl31.h>
-#include <spirv_cross/spirv_cross_c.h>
+#include <dlfcn.h>
 #include <vector>
 #include <map>
 #include <string.h>
+
+#ifndef GL_SHADER_BINARY_FORMAT_SPIR_V
+#define GL_SHADER_BINARY_FORMAT_SPIR_V 0x8F67
+#endif
+
+typedef void (GL_APIENTRYP PFNGLSPECIALIZESHADERPROC)(GLuint, const GLchar*, GLuint, const GLuint*, const GLuint*);
+static PFNGLSPECIALIZESHADERPROC glSpecializeShader = nullptr;
 
 typedef void* VkDevice;
 typedef uint32_t VkResult;
@@ -31,27 +38,18 @@ extern "C" {
 
 // --- Shader --- 
 VkResult vkCreateShaderModule(VkDevice device, const void* pCreateInfo, const void* pAllocator, VkShaderModule* pShaderModule) {
-    auto* info = (const VkShaderModuleCreateInfo*)pCreateInfo;
-    spirv_cross::CompilerGLSL glsl((uint32_t*)info->pCode, info->codeSize / sizeof(uint32_t));
-    
-    std::string source = glsl.compile();
-    const char* srcPtr = source.c_str();
-    GLuint shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(shader, 1, &srcPtr, NULL);
-    glCompileShader(shader);
-
-    ShaderModuleContext* ctx = new ShaderModuleContext();
-    ctx->shaderID = shader;
-
-    auto res = glsl.get_shader_resources();
-    for (auto &r : res.uniform_buffers) {
-        ctx->descriptors.push_back({glsl.get_decoration(r.id, spv::DecorationDescriptorSet), glsl.get_decoration(r.id, spv::DecorationBinding), GL_UNIFORM_BUFFER});
+    if (!glSpecializeShader) {
+        glSpecializeShader = (PFNGLSPECIALIZESHADERPROC)dlsym(RTLD_DEFAULT, "glSpecializeShader");
     }
-    for (auto &r : res.sampled_images) {
-        ctx->descriptors.push_back({glsl.get_decoration(r.id, spv::DecorationDescriptorSet), glsl.get_decoration(r.id, spv::DecorationBinding), GL_SAMPLER_2D});
+    const uint32_t* raw = (const uint32_t*)pCreateInfo;
+    size_t codeSize = *(size_t*)(raw + 4);
+    const void* pCode = *(const void**)(raw + 6);
+    GLuint shader = glCreateShader(GL_COMPUTE_SHADER);
+    glShaderBinary(1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V, pCode, (GLsizei)codeSize);
+    if (glSpecializeShader) {
+        glSpecializeShader(shader, "main", 0, nullptr, nullptr);
     }
-    
-    *pShaderModule = (VkShaderModule)(uintptr_t)ctx;
+    *pShaderModule = (VkShaderModule)(uintptr_t)shader;
     return 0;
 }
 
