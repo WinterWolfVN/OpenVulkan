@@ -45,4 +45,45 @@ void vkDestroyDevice(VkDevice device, const void* pAllocator) {
     delete (VkDevice_T*)device;
 }
 
+VkResult vkCreateFramebuffer(
+    VkDevice device,
+    const VkFramebufferCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkFramebuffer* pFramebuffer) 
+{
+    VkFramebuffer fb = new VkFramebuffer_T();
+    fb->width = pCreateInfo->width;
+    fb->height = pCreateInfo->height;    
+    glGenFramebuffers(1, &fb->gles_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb->gles_fbo);    
+    for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
+        VkImageView attachment = pCreateInfo->pAttachments[i];
+        if (!attachment) continue;        
+        if (attachment->is_depth) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, attachment->gles_tex_id, 0);
+        } else {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, attachment->gles_tex_id, 0);
+        }
+    }    
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {        
+    }    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    *pFramebuffer = fb;
+    return VK_SUCCESS;
+}
+
+void vkDestroyFramebuffer(
+    VkDevice device,
+    VkFramebuffer framebuffer,
+    const VkAllocationCallbacks* pAllocator) 
+{
+    if (framebuffer) {
+        if (framebuffer->gles_fbo != 0) {
+            glDeleteFramebuffers(1, &framebuffer->gles_fbo);
+        }
+        delete framebuffer;
+    }
+}
+
 }
