@@ -1,323 +1,214 @@
 #include <GLES3/gl31.h>
-#include <stdint.h>
 #include <vector>
-#include <map>
+#include <stdint.h>
+#include <string.h>
 
-typedef void* VkDevice;
-typedef void* VkQueue;
-typedef uint64_t VkCommandPool;
-typedef uint64_t VkCommandBuffer;
-typedef uint64_t VkBuffer;
-typedef uint64_t VkDescriptorSet;
-typedef void* VkFence;
-typedef uint32_t VkResult;
-typedef uint64_t VkDeviceSize;
-typedef uint32_t VkIndexType;
-typedef uint32_t VkPipelineBindPoint;
-typedef uint64_t VkPipeline;
-
-#define VK_SUCCESS 0
-#define VK_INDEX_TYPE_UINT16 0
-
-enum CommandType {
-    CMD_BIND_PIPELINE,
-    CMD_BIND_VERTEX_BUFFERS,
-    CMD_BIND_INDEX_BUFFER,
-    CMD_BIND_DESCRIPTOR_SETS,
-    CMD_DRAW,
-    CMD_DRAW_INDEXED,
-    CMD_DRAW_INDIRECT,
-    CMD_DRAW_INDEXED_INDIRECT,
-    CMD_BEGIN_RENDER_PASS,
-    CMD_END_RENDER_PASS
+enum class Opcode : uint8_t {
+    BindPipeline, BindVertexBuffers, BindIndexBuffer, BindDescriptorSets, Draw, DrawIndexed, DrawIndirect, DrawIndexedIndirect, SetViewport, SetScissor, BeginRenderPass, EndRenderPass
 };
 
-enum CommandType { BIND_PIPELINE, BIND_DESCRIPTOR, DRAW };
-struct Command {
-    CommandType type;
-    unsigned int programID;
-    unsigned int vaoID;
-};
-
-struct FakeCommandBuffer {
-    std::vector<Command> commands;
-};
-
-struct DescriptorResource {
-    GLenum type;
-    GLuint id;
-};
-
-struct VkDescriptorSet_T {
-    std::map<uint32_t, DescriptorResource> resources;
-};
-
-struct BufferContext {
-    GLuint glBuffer;
-};
-
-struct Command {
-    CommandType type;
-    uintptr_t pipeline;
-    uintptr_t buffer;
-    GLintptr offset;
-    GLsizei stride;
-    VkDescriptorSet descriptorSet;
-    GLenum mode;
-    GLint first;
-    GLsizei count;
-    GLenum indexType;
-    const void* indices;
-    uint32_t instanceCount;
-};
-
-struct CommandBuffer {
-    std::vector<Command> commands;
-    bool isRecording;
-};
-
-struct VkCommandPool_T {
-    std::vector<CommandBuffer*> allocatedBuffers;
-};
-
-struct VkSubmitInfo {
-    uint32_t sType;
-    const void* pNext;
-    uint32_t waitSemaphoreCount;
-    const void* pWaitSemaphores;
-    const uint32_t* pWaitDstStageMask;
-    uint32_t commandBufferCount;
-    const VkCommandBuffer* pCommandBuffers;
-    uint32_t signalSemaphoreCount;
-    const void* pSignalSemaphores;
-};
-
-extern "C" {
-
-VkResult vkCreateCommandPool(VkDevice device, const void* pCreateInfo, const void* pAllocator, VkCommandPool* pCommandPool) {
-    *pCommandPool = (VkCommandPool)(uintptr_t)new VkCommandPool_T();
+VkResult vkCreateCommandPool(VkDevice device, const VkCommandPoolCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkCommandPool* pCommandPool) {
+    *pCommandPool = new VkCommandPool_T{ pCreateInfo->flags };
     return VK_SUCCESS;
 }
 
-void vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool, const void* pAllocator) {
-    auto* pool = (VkCommandPool_T*)(uintptr_t)commandPool;
-    if (pool) {
-        for (auto* buf : pool->allocatedBuffers) {
-            delete buf;
-        }
-        delete pool;
-    }
+void vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool, const VkAllocationCallbacks* pAllocator) {
+    delete commandPool;
 }
 
-VkResult vkAllocateCommandBuffers(VkDevice device, const void* pAllocateInfo, VkCommandBuffer* pCommandBuffers) {
-    auto* raw = (const uint32_t*)pAllocateInfo;
-    VkCommandPool poolHandle = *(const VkCommandPool*)(raw + 4); 
-    uint32_t count = *(raw + 7);
-    auto* pool = (VkCommandPool_T*)(uintptr_t)poolHandle;
-    for (uint32_t i = 0; i < count; ++i) {
-        auto* buf = new CommandBuffer();
-        buf->isRecording = false;
-        pool->allocatedBuffers.push_back(buf);
-        pCommandBuffers[i] = (VkCommandBuffer)(uintptr_t)buf;
+VkResult vkResetCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolResetFlags flags) {
+    return VK_SUCCESS;
+}
+
+VkResult vkAllocateCommandBuffers(VkDevice device, const VkCommandBufferAllocateInfo* pAllocateInfo, VkCommandBuffer* pCommandBuffers) {
+    for (uint32_t i = 0; i < pAllocateInfo->commandBufferCount; ++i) {
+        pCommandBuffers[i] = new VkCommandBuffer_T{ std::vector<uint8_t>(), pAllocateInfo->commandPool };
     }
     return VK_SUCCESS;
 }
 
 void vkFreeCommandBuffers(VkDevice device, VkCommandPool commandPool, uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers) {
-    auto* pool = (VkCommandPool_T*)(uintptr_t)commandPool;
-    if (!pool) return;
-    for (uint32_t i = 0; i < commandBufferCount; ++i) {
-        auto* buf = (CommandBuffer*)(uintptr_t)pCommandBuffers[i];
-        for (auto it = pool->allocatedBuffers.begin(); it != pool->allocatedBuffers.end(); ++it) {
-            if (*it == buf) {
-                delete buf;
-                pool->allocatedBuffers.erase(it);
-                break;
-            }
-        }
-    }
+    for (uint32_t i = 0; i < commandBufferCount; ++i) delete pCommandBuffers[i];
 }
 
-VkResult vkBeginCommandBuffer(VkCommandBuffer commandBuffer, const void* pBeginInfo) {
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    cmd.commands.clear();
-    cmd.isRecording = true;
+VkResult vkResetCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferResetFlags flags) {
+    if (commandBuffer) commandBuffer->stream.clear();
     return VK_SUCCESS;
 }
 
-VkResult vkEndCommandBuffer(VkCommandBuffer commandBuffer) {
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    cmd.isRecording = false;
+VkResult vkBeginCommandBuffer(VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo* pBeginInfo) {
+    if (commandBuffer) commandBuffer->stream.clear();
     return VK_SUCCESS;
 }
 
-VkResult vkResetCommandBuffer(VkCommandBuffer commandBuffer, uint32_t flags) { return VK_SUCCESS; }
-VkResult vkResetCommandPool(VkDevice device, VkCommandPool commandPool, uint32_t flags) { return VK_SUCCESS; }
-
-void vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, const void* pRenderPassBegin, uint32_t contents) {
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    Command c;
-    c.type = CMD_BEGIN_RENDER_PASS;
-    cmd.commands.push_back(c);
+void vkCmdBindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) {
+    commandBuffer->stream.push_back((uint8_t)Opcode::BindPipeline);
+    commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)&pipeline, (uint8_t*)&pipeline + sizeof(void*));
 }
 
-void vkCmdEndRenderPass(VkCommandBuffer commandBuffer) { 
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    Command c;
-    c.type = CMD_END_RENDER_PASS;
-    cmd.commands.push_back(c);
-}
-
-void vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t first, uint32_t count, const uint64_t* pBuffers, const uint64_t* pOffsets) {
-    if (count > 0) {
-        auto& cmd = *(CommandBuffer*)commandBuffer;
-        Command c;
-        c.type = CMD_BIND_VERTEX_BUFFERS;
-        c.buffer = (uintptr_t)pBuffers[0];
-        c.offset = pOffsets ? (GLintptr)pOffsets[0] : 0;
-        c.stride = 32;
-        cmd.commands.push_back(c);
+void vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t firstBinding, uint32_t bindingCount, const VkBuffer* pBuffers, const VkDeviceSize* pOffsets) {
+    if (pBuffers && bindingCount > 0) {
+        commandBuffer->stream.push_back((uint8_t)Opcode::BindVertexBuffers);
+        commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)&pBuffers[0], (uint8_t*)&pBuffers[0] + sizeof(void*));
     }
 }
 
 void vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkIndexType indexType) {
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    Command c;
-    c.type = CMD_BIND_INDEX_BUFFER;
-    c.buffer = (uintptr_t)buffer;
-    c.offset = (GLintptr)offset;
-    c.indexType = (indexType == VK_INDEX_TYPE_UINT16) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
-    cmd.commands.push_back(c);
+    commandBuffer->stream.push_back((uint8_t)Opcode::BindIndexBuffer);
+    commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)&buffer, (uint8_t*)&buffer + sizeof(void*));
 }
 
-void vkCmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstViewport, uint32_t viewportCount, const void* pViewports) {}
-void vkCmdSetScissor(VkCommandBuffer commandBuffer, uint32_t firstScissor, uint32_t scissorCount, const void* pScissors) {}
+void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout, uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets, uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets) {
+    uintptr_t dummy = 0;
+    commandBuffer->stream.push_back((uint8_t)Opcode::BindDescriptorSets);
+    commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)&dummy, (uint8_t*)&dummy + sizeof(uintptr_t));
+}
 
 void vkCmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) {
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    Command c;
-    c.type = CMD_DRAW;
-    c.mode = GL_TRIANGLES;
-    c.first = (GLint)firstVertex;
-    c.count = (GLsizei)vertexCount;
-    cmd.commands.push_back(c);
+    uint32_t data[2] = { vertexCount, firstVertex };
+    commandBuffer->stream.push_back((uint8_t)Opcode::Draw);
+    commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)data, (uint8_t*)data + sizeof(data));
 }
 
 void vkCmdDrawIndexed(VkCommandBuffer commandBuffer, uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance) {
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    Command c;
-    c.type = CMD_DRAW_INDEXED;
-    c.mode = GL_TRIANGLES;
-    c.count = (GLsizei)indexCount;
-    c.indices = (const void*)(uintptr_t)firstIndex;
-    c.instanceCount = instanceCount;
-    cmd.commands.push_back(c);
+    uint32_t data[2] = { indexCount, firstIndex };
+    commandBuffer->stream.push_back((uint8_t)Opcode::DrawIndexed);
+    commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)data, (uint8_t*)data + sizeof(data));
 }
 
-void vkCmdDrawIndirect(VkCommandBuffer commandBuffer, uint64_t buffer, uint64_t offset, uint32_t drawCount, uint32_t stride) {
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    Command c;
-    c.type = CMD_DRAW_INDIRECT;
-    c.offset = (GLintptr)offset;
-    cmd.commands.push_back(c);
+void vkCmdDrawIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride) {
+    commandBuffer->stream.push_back((uint8_t)Opcode::DrawIndirect);
+    commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)&buffer, (uint8_t*)&buffer + sizeof(void*));
+    commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)&offset, (uint8_t*)&offset + sizeof(VkDeviceSize));
 }
 
-void vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, uint64_t buffer, uint64_t offset, uint32_t drawCount, uint32_t stride) {
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    Command c;
-    c.type = CMD_DRAW_INDEXED_INDIRECT;
-    c.offset = (GLintptr)offset;
-    cmd.commands.push_back(c);
+void vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride) {
+    commandBuffer->stream.push_back((uint8_t)Opcode::DrawIndexedIndirect);
+    commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)&buffer, (uint8_t*)&buffer + sizeof(void*));
+    commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)&offset, (uint8_t*)&offset + sizeof(VkDeviceSize));
 }
 
-void vkCmdBindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) {   
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    Command c;
-    c.type = CMD_BIND_PIPELINE;
-    c.pipeline = (uintptr_t)pipeline;
-    cmd.commands.push_back(c);
+void vkCmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstViewport, uint32_t viewportCount, const VkViewport* pViewports) {
+    if (pViewports && viewportCount > 0) {
+        float data[4] = { pViewports[0].x, pViewports[0].y, pViewports[0].width, pViewports[0].height };
+        commandBuffer->stream.push_back((uint8_t)Opcode::SetViewport);
+        commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)data, (uint8_t*)data + sizeof(data));
+    }
 }
 
-void RecordGraphicsCommands(FakeCommandBuffer& cmdBuf, unsigned int programID, unsigned int vaoID) {
-    cmdBuf.commands.clear();
-    cmdBuf.commands.push_back({BIND_PIPELINE, programID, 0});
-    cmdBuf.commands.push_back({BIND_DESCRIPTOR, 0, vaoID});
-    cmdBuf.commands.push_back({DRAW, 0, 0});
+void vkCmdSetScissor(VkCommandBuffer commandBuffer, uint32_t firstScissor, uint32_t scissorCount, const VkRect2D* pScissors) {
+    if (pScissors && scissorCount > 0) {
+        int32_t data[4] = { pScissors[0].offset.x, pScissors[0].offset.y, (int32_t)pScissors[0].extent.width, (int32_t)pScissors[0].extent.height };
+        commandBuffer->stream.push_back((uint8_t)Opcode::SetScissor);
+        commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)data, (uint8_t*)data + sizeof(data));
+    }
 }
 
-void vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
-    glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);    
-    for (uint32_t i = 0; i < submitCount; ++i) {        
-        CommandBuffer& cmd = *(CommandBuffer*)pSubmits[i].pCommandBuffers[0];        
-        VkDescriptorSet_T* activeDescriptorSet = nullptr;        
-        GLenum activeIndexType = GL_UNSIGNED_SHORT;
-        GLintptr activeIndexOffset = 0;
-        for (auto& command : cmd.commands) {
-            switch(command.type) {
-                case CMD_BEGIN_RENDER_PASS:
-                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                    break;
-                case CMD_END_RENDER_PASS:
-                    glFlush();
-                    break;
-                case CMD_BIND_PIPELINE:
-                    glBindProgramPipeline((GLuint)command.pipeline);
-                    break;                    
-                case CMD_BIND_VERTEX_BUFFERS:
-                    glBindVertexBuffer(0, (GLuint)command.buffer, command.offset, command.stride);
-                    break;
-                case CMD_BIND_INDEX_BUFFER: {
-                    BufferContext* ctx = (BufferContext*)(uintptr_t)command.buffer;
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ctx->glBuffer);
-                    activeIndexType = command.indexType;
-                    activeIndexOffset = command.offset;
-                    break;
-                }
-                case CMD_BIND_DESCRIPTOR_SETS:
-                    activeDescriptorSet = (VkDescriptorSet_T*)(uintptr_t)command.descriptorSet;
-                    break;                    
-                case CMD_DRAW:
-                    if (activeDescriptorSet) {
-                        for (auto const& [binding, res] : activeDescriptorSet->resources) {
-                            if (res.type == GL_UNIFORM_BUFFER) {
-                                glBindBufferBase(GL_UNIFORM_BUFFER, binding, res.id);
-                            } else if (res.type == GL_SAMPLER_2D) {
-                                glActiveTexture(GL_TEXTURE0 + binding);
-                                glBindTexture(GL_TEXTURE_2D, res.id);
-                            }
-                        }
-                    }
-                    glDrawArrays(command.mode, command.first, command.count);
-                    break;
-                case CMD_DRAW_INDEXED:
-                    if (activeDescriptorSet) {
-                        for (auto const& [binding, res] : activeDescriptorSet->resources) {
-                            if (res.type == GL_UNIFORM_BUFFER) {
-                                glBindBufferBase(GL_UNIFORM_BUFFER, binding, res.id);
-                            } else if (res.type == GL_SAMPLER_2D) {
-                                glActiveTexture(GL_TEXTURE0 + binding);
-                                glBindTexture(GL_TEXTURE_2D, res.id);
-                            }
-                        }
-                    }
-                    glDrawElementsInstanced(
-                        command.mode, 
-                        command.count, 
-                        activeIndexType, 
-                        (void*)(activeIndexOffset + ((uintptr_t)command.indices * (activeIndexType == GL_UNSIGNED_SHORT ? 2 : 4))), 
-                        command.instanceCount
-                    );
-                    break;
-                case CMD_DRAW_INDIRECT:
-                    glDrawArraysIndirect(GL_TRIANGLES, (const void*)command.offset);
-                    break;
-                case CMD_DRAW_INDEXED_INDIRECT:
-                    glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (const void*)command.offset);
-                    break;
+void vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, VkSubpassContents contents) {
+    if (pRenderPassBegin) {
+        commandBuffer->stream.push_back((uint8_t)Opcode::BeginRenderPass);
+        commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)&pRenderPassBegin->renderPass, (uint8_t*)&pRenderPassBegin->renderPass + sizeof(void*));
+        commandBuffer->stream.insert(commandBuffer->stream.end(), (uint8_t*)&pRenderPassBegin->framebuffer, (uint8_t*)&pRenderPassBegin->framebuffer + sizeof(void*));
+    }
+}
+
+void vkCmdEndRenderPass(VkCommandBuffer commandBuffer) {
+    if (commandBuffer) commandBuffer->stream.push_back((uint8_t)Opcode::EndRenderPass);
+}
+
+VkResult vkEndCommandBuffer(VkCommandBuffer commandBuffer) {
+    return VK_SUCCESS;
+}
+
+VkResult vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
+    if (!pSubmits || submitCount == 0) return VK_SUCCESS;
+    VkCommandBuffer cmdBuffer = pSubmits[0].pCommandBuffers[0];
+    if (!cmdBuffer) return VK_SUCCESS;
+    const uint8_t* reader = cmdBuffer->stream.data();
+    size_t size = cmdBuffer->stream.size();
+    size_t offset = 0;
+    while (offset < size) {
+        Opcode op = (Opcode)reader[offset];
+        offset += sizeof(Opcode);
+
+        switch (op) {
+            case Opcode::BindPipeline: {
+                VkPipeline pipeline = *(const VkPipeline*)(reader + offset);
+                if (pipeline) glUseProgram(pipeline->gles_program);
+                offset += sizeof(void*);
+                break;
+            }
+            case Opcode::BindVertexBuffers: {
+                VkBuffer buffer = *(const VkBuffer*)(reader + offset);
+                if (buffer) glBindBuffer(GL_ARRAY_BUFFER, buffer->gles_buffer);
+                offset += sizeof(void*);
+                break;
+            }
+            case Opcode::BindIndexBuffer: {
+                VkBuffer buffer = *(const VkBuffer*)(reader + offset);
+                if (buffer) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->gles_buffer);
+                offset += sizeof(void*);
+                break;
+            }
+            case Opcode::BindDescriptorSets: {
+                offset += sizeof(uintptr_t);
+                break;
+            }
+            case Opcode::Draw: {
+                const uint32_t* data = (const uint32_t*)(reader + offset);
+                glDrawArrays(GL_TRIANGLES, data[1], data[0]);
+                offset += sizeof(uint32_t) * 2;
+                break;
+            }
+            case Opcode::DrawIndexed: {
+                const uint32_t* data = (const uint32_t*)(reader + offset);
+                glDrawElements(GL_TRIANGLES, data[0], GL_UNSIGNED_SHORT, (const void*)(uintptr_t)data[1]);
+                offset += sizeof(uint32_t) * 2;
+                break;
+            }
+            case Opcode::DrawIndirect: {
+                VkBuffer buffer = *(const VkBuffer*)(reader + offset);
+                offset += sizeof(void*);
+                VkDeviceSize off = *(const VkDeviceSize*)(reader + offset);
+                offset += sizeof(VkDeviceSize);
+                if (buffer) glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer->gles_buffer);
+                glDrawArraysIndirect(GL_TRIANGLES, (const void*)(uintptr_t)off);
+                break;
+            }
+            case Opcode::DrawIndexedIndirect: {
+                VkBuffer buffer = *(const VkBuffer*)(reader + offset);
+                offset += sizeof(void*);
+                VkDeviceSize off = *(const VkDeviceSize*)(reader + offset);
+                offset += sizeof(VkDeviceSize);
+                if (buffer) glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer->gles_buffer);
+                glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, (const void*)(uintptr_t)off);
+                break;
+            }
+            case Opcode::SetViewport: {
+                const float* data = (const float*)(reader + offset);
+                glViewport((int)data[0], (int)data[1], (int)data[2], (int)data[3]);
+                offset += sizeof(float) * 4;
+                break;
+            }
+            case Opcode::SetScissor: {
+                const int32_t* data = (const int32_t*)(reader + offset);
+                glScissor(data[0], data[1], data[2], data[3]);
+                offset += sizeof(int32_t) * 4;
+                break;
+            }
+            case Opcode::BeginRenderPass: {
+                VkRenderPass rp = *(const VkRenderPass*)(reader + offset);
+                offset += sizeof(void*);
+                VkFramebuffer fb = *(const VkFramebuffer*)(reader + offset);
+                offset += sizeof(void*);
+                glBindFramebuffer(GL_FRAMEBUFFER, fb ? fb->gles_fbo : 0);
+                if (rp && rp->clear_color) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                break;
+            }
+            case Opcode::EndRenderPass: {
+                break;
             }
         }
     }
-    glFlush();
-}
-
+    return VK_SUCCESS;
 }
