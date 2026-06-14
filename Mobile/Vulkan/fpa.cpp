@@ -63,14 +63,16 @@ static const FPAEntry dispatch_table[] = {
     {"vkCreateDevice", (PFN_vkCreateDevice)vkCreateDevice},
     {"vkEnumeratePhysicalDevices", (PFN_vkEnumeratePhysicalDevices)vkEnumeratePhysicalDevices},
     {"vkGetPhysicalDeviceProperties", (PFN_vkGetPhysicalDeviceProperties)vkGetPhysicalDeviceProperties},
-    {"vkGetPhysicalDeviceMemoryProperties", (PFN_vkGetPhysicalDeviceMemoryProperties)vkGetPhysicalDeviceMemoryProperties}
+    {"vkGetPhysicalDeviceMemoryProperties", (PFN_vkGetPhysicalDeviceMemoryProperties)vkGetPhysicalDeviceMemoryProperties},
 
     // [context.cpp]
     {"vkCreateInstance", (PFN_vkVoidFunction)vkCreateInstance},
     {"vkCreateDevice", (PFN_vkVoidFunction)vkCreateDevice},
     {"vkEnumeratePhysicalDevices", (PFN_vkVoidFunction)vkEnumeratePhysicalDevices},
     {"vkGetPhysicalDeviceProperties", (PFN_vkVoidFunction)vkGetPhysicalDeviceProperties},
-    {"vkGetPhysicalDeviceMemoryProperties", (PFN_vkVoidFunction)vkGetPhysicalDeviceMemoryProperties}
+    {"vkGetPhysicalDeviceMemoryProperties", (PFN_vkVoidFunction)vkGetPhysicalDeviceMemoryProperties}, 
+    {"vkCreateFramebuffer", (PFN_vkVoidFunction)(PFN_vkCreateFramebuffer)vkCreateFramebuffer},
+    {"vkDestroyFramebuffer", (PFN_vkVoidFunction)(PFN_vkDestroyFramebuffer)vkDestroyFramebuffer},
 };
 
 extern "C" PFN_vkVoidFunction get_vulkan_proc_addr(const char* pName) {
