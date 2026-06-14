@@ -36,6 +36,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkCmdDrawIndirect", (PFN_vkVoidFunction)(PFN_vkCmdDrawIndirect)vkCmdDrawIndirect},
     {"vkCmdDrawIndexedIndirect", (PFN_vkVoidFunction)(PFN_vkCmdDrawIndexedIndirect)vkCmdDrawIndexedIndirect},
     {"vkCmdBindPipeline", (PFN_vkVoidFunction)(PFN_vkCmdBindPipeline)vkCmdBindPipeline},
+    {"vkCmdBindDescriptorSets", (PFN_vkVoidFunction)(PFN_vkCmdBindDescriptorSets)vkCmdBindDescriptorSets},
     {"vkQueueSubmit", (PFN_vkVoidFunction)(PFN_vkQueueSubmit)vkQueueSubmit},
 
     // [shader.cpp]
