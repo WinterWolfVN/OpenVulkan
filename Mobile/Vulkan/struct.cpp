@@ -1,6 +1,30 @@
 #include <GLES3/gl31.h>
-#include <vector>
 #include <stdint.h>
+#include <vector>
+
+typedef int32_t VkResult;
+typedef uint64_t VkDeviceSize;
+
+enum {
+    VK_SUCCESS = 0,
+    VK_ERROR_OUT_OF_HOST_MEMORY = -1,
+    VK_ERROR_OUT_OF_DEVICE_MEMORY = -2,
+    VK_ERROR_INITIALIZATION_FAILED = -3,
+    VK_ERROR_DEVICE_LOST = -4
+};
+
+enum VkIndexType {
+    VK_INDEX_TYPE_UINT16 = 0,
+    VK_INDEX_TYPE_UINT32 = 1
+};
+
+enum VkPipelineBindPoint {
+    VK_PIPELINE_BIND_POINT_GRAPHICS = 0
+};
+
+enum VkSubpassContents {
+    VK_SUBPASS_CONTENTS_INLINE = 0
+};
 
 struct VkDevice_T;
 struct VkQueue_T;
