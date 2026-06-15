@@ -113,20 +113,4 @@ void vkUpdateDescriptorSets(VkDevice device, uint32_t descriptorWriteCount, cons
     }
 }
 
-void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, uint32_t pipelineBindPoint, uint64_t layout, uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets, uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets) {
-    auto& cmd = *(CommandBuffer*)commandBuffer;    
-    Command c;
-    c.type = CMD_BIND_DESCRIPTOR_SETS;
-    c.descriptorSet = pDescriptorSets[0];
-    cmd.commands.push_back(c);
-}
-
-void vkCmdBindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) {   
-    auto& cmd = *(CommandBuffer*)commandBuffer;
-    Command c;
-    c.type = CMD_BIND_PIPELINE;
-    c.pipeline = (uintptr_t)pipeline;
-    cmd.commands.push_back(c);
-}
-
 } 
