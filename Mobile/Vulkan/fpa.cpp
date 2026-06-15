@@ -49,7 +49,6 @@ static const FPAEntry dispatch_table[] = {
     {"vkAllocateDescriptorSets", (PFN_vkVoidFunction)(PFN_vkAllocateDescriptorSets)vkAllocateDescriptorSets},
     {"vkFreeDescriptorSets", (PFN_vkVoidFunction)(PFN_vkFreeDescriptorSets)vkFreeDescriptorSets},
     {"vkUpdateDescriptorSets", (PFN_vkVoidFunction)(PFN_vkUpdateDescriptorSets)vkUpdateDescriptorSets},
-    {"vkCmdBindDescriptorSets", (PFN_vkVoidFunction)(PFN_vkCmdBindDescriptorSets)vkCmdBindDescriptorSets},
     
     // [screen.cpp]
     {"vkCreateSwapchainKHR", (PFN_vkVoidFunction)vkCreateSwapchainKHR}, 
