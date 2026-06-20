@@ -1,4 +1,4 @@
-#include "struct_core.h"
+#include "../fpa/struct_core.h"
 #include <GLES3/gl3.h>
 #include <cstring>
 #include <cstdlib>
