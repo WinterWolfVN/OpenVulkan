@@ -4,8 +4,7 @@
 #include <vector>
 
 int32_t vkBeginCommandBuffer(VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo* pBeginInfo) {
-    if (!commandBuffer) return -3;
-    
+    if (!commandBuffer) return -3;    
     commandBuffer->currentTopology = 0;
     commandBuffer->currentIndexType = 0;
     commandBuffer->currentIndexOffset = 0;
@@ -15,22 +14,19 @@ int32_t vkBeginCommandBuffer(VkCommandBuffer commandBuffer, const VkCommandBuffe
 }
 
 int32_t vkEndCommandBuffer(VkCommandBuffer commandBuffer) {
-    if (!commandBuffer) return -3;
-    
+    if (!commandBuffer) return -3;    
     return 0;
 }
 
 void vkCmdEndRenderPass(VkCommandBuffer commandBuffer) {
-    if (!commandBuffer) return;
-    
+    if (!commandBuffer) return;    
     commandBuffer->commands.push_back([]() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     });
 }
 
 void vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, int32_t firstBinding, int32_t bindingCount, const VkBuffer* pBuffers, const int64_t* pOffsets) {
-    if (!commandBuffer || !pBuffers || !pOffsets) return;
-    
+    if (!commandBuffer || !pBuffers || !pOffsets) return;    
     std::vector<int32_t> glBuffers(bindingCount);
     for (int32_t i = 0; i < bindingCount; ++i) {
         glBuffers[i] = pBuffers[i] ? pBuffers[i]->buffer : 0;
@@ -46,8 +42,7 @@ void vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, int32_t firstBinding,
 }
 
 void vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buffer, int64_t offset, int32_t indexType) {
-    if (!commandBuffer || !buffer) return;
-    
+    if (!commandBuffer || !buffer) return;    
     int32_t glBuf = buffer->buffer;
     commandBuffer->currentIndexType = indexType;
     commandBuffer->currentIndexOffset = offset;
@@ -58,8 +53,7 @@ void vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buffer, int64_
 }
 
 void vkCmdSetViewport(VkCommandBuffer commandBuffer, int32_t firstViewport, int32_t viewportCount, const VkViewport* pViewports) {
-    if (!commandBuffer || !pViewports || viewportCount <= 0) return;
-    
+    if (!commandBuffer || !pViewports || viewportCount <= 0) return;    
     VkViewport vp = pViewports[0];
     
     commandBuffer->commands.push_back([vp]() {
@@ -72,8 +66,7 @@ void vkCmdSetViewport(VkCommandBuffer commandBuffer, int32_t firstViewport, int3
 }
 
 void vkCmdSetScissor(VkCommandBuffer commandBuffer, int32_t firstScissor, int32_t scissorCount, const VkRect2D* pScissors) {
-    if (!commandBuffer || !pScissors || scissorCount <= 0) return;
-    
+    if (!commandBuffer || !pScissors || scissorCount <= 0) return;    
     VkRect2D sc = pScissors[0];
     
     commandBuffer->commands.push_back([sc]() {
@@ -85,8 +78,7 @@ void vkCmdSetScissor(VkCommandBuffer commandBuffer, int32_t firstScissor, int32_
 }
 
 void vkCmdBindPipeline(VkCommandBuffer commandBuffer, int32_t pipelineBindPoint, VkPipeline pipeline) {
-    if (!commandBuffer || !pipeline) return;
-    
+    if (!commandBuffer || !pipeline) return;    
     int32_t prog = pipeline->program;
     int32_t isCompute = (pipelineBindPoint == 1);    
     int32_t topo = pipeline->topology;
@@ -144,8 +136,7 @@ void vkCmdDispatch(VkCommandBuffer commandBuffer, int32_t groupCountX, int32_t g
 }
 
 void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, int32_t pipelineBindPoint, VkPipelineLayout layout, int32_t firstSet, int32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets, int32_t dynamicOffsetCount, const int32_t* pDynamicOffsets) {
-    if (!commandBuffer || !pDescriptorSets) return;
-    
+    if (!commandBuffer || !pDescriptorSets) return;    
     std::vector<VkDescriptorSet_T> sets(descriptorSetCount);
     for (int32_t i = 0; i < descriptorSetCount; ++i) {
         if (pDescriptorSets[i]) sets[i] = *(pDescriptorSets[i]);
@@ -163,8 +154,7 @@ void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, int32_t pipelineBind
 }
 
 void vkCmdDraw(VkCommandBuffer commandBuffer, int32_t vertexCount, int32_t instanceCount, int32_t firstVertex, int32_t firstInstance) {
-    if (!commandBuffer) return;
-    
+    if (!commandBuffer) return;    
     int32_t topo = commandBuffer->currentTopology;
     
     commandBuffer->commands.push_back([=]() {
@@ -177,8 +167,7 @@ void vkCmdDraw(VkCommandBuffer commandBuffer, int32_t vertexCount, int32_t insta
 }
 
 void vkCmdDrawIndexed(VkCommandBuffer commandBuffer, int32_t indexCount, int32_t instanceCount, int32_t firstIndex, int32_t vertexOffset, int32_t firstInstance) {
-    if (!commandBuffer) return;
-    
+    if (!commandBuffer) return;    
     int32_t topo = commandBuffer->currentTopology;
     int32_t iType = commandBuffer->currentIndexType;
     int64_t iOffset = commandBuffer->currentIndexOffset;
@@ -186,8 +175,7 @@ void vkCmdDrawIndexed(VkCommandBuffer commandBuffer, int32_t indexCount, int32_t
     commandBuffer->commands.push_back([=]() {
         GLenum type = (iType == 0) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
         int64_t indexSize = (type == GL_UNSIGNED_SHORT) ? 2 : 4;
-        int64_t finalOffset = iOffset + (firstIndex * indexSize);
-        
+        int64_t finalOffset = iOffset + (firstIndex * indexSize);        
         if (instanceCount > 1) {
             glDrawElementsInstanced(static_cast<GLenum>(topo), indexCount, type, reinterpret_cast<const void*>(static_cast<uintptr_t>(finalOffset)), instanceCount);
         } else {
@@ -197,46 +185,39 @@ void vkCmdDrawIndexed(VkCommandBuffer commandBuffer, int32_t indexCount, int32_t
 }
 
 void vkCmdDrawIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, int64_t offset, int32_t drawCount, int32_t stride) {
-    if (!commandBuffer || !buffer) return;
-    
+    if (!commandBuffer || !buffer) return;    
     int32_t glBuf = buffer->buffer;
     int32_t topo = commandBuffer->currentTopology;
     
     commandBuffer->commands.push_back([=]() {
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, static_cast<GLuint>(glBuf));
-        
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, static_cast<GLuint>(glBuf));        
         for (int32_t i = 0; i < drawCount; ++i) {
             int64_t currentOffset = offset + (i * stride);
             glDrawArraysIndirect(static_cast<GLenum>(topo), reinterpret_cast<const void*>(static_cast<uintptr_t>(currentOffset)));
-        }
-        
+        }        
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
     });
 }
 
 void vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, int64_t offset, int32_t drawCount, int32_t stride) {
-    if (!commandBuffer || !buffer) return;
-    
+    if (!commandBuffer || !buffer) return;    
     int32_t glBuf = buffer->buffer;
     int32_t topo = commandBuffer->currentTopology;
     int32_t iType = commandBuffer->currentIndexType;
     
     commandBuffer->commands.push_back([=]() {
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, static_cast<GLuint>(glBuf));
-        GLenum type = (iType == 0) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
-        
+        GLenum type = (iType == 0) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;        
         for (int32_t i = 0; i < drawCount; ++i) {
             int64_t currentOffset = offset + (i * stride);
             glDrawElementsIndirect(static_cast<GLenum>(topo), type, reinterpret_cast<const void*>(static_cast<uintptr_t>(currentOffset)));
-        }
-        
+        }        
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
     });
 }
 
 int32_t vkQueueSubmit(VkQueue queue, int32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
-    if (!pSubmits) return -3;
-    
+    if (!pSubmits) return -3;    
     for (int32_t i = 0; i < submitCount; ++i) {
         for (int32_t j = 0; j < pSubmits[i].commandBufferCount; ++j) {
             VkCommandBuffer cmd = pSubmits[i].pCommandBuffers[j];
@@ -246,8 +227,7 @@ int32_t vkQueueSubmit(VkQueue queue, int32_t submitCount, const VkSubmitInfo* pS
                 }
             }
         }
-    }
-    
+    }    
     glFlush();
     return 0;
 }
