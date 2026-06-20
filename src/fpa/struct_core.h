@@ -1,6 +1,8 @@
 #pragma once
 #include <atomic>
 #include <cstdint>
+#include <vector>
+#include <functional>
 
 //[buffer.cpp] 
 struct VkDeviceMemory_T {
@@ -24,6 +26,7 @@ struct VkCommandBuffer_T {
     int32_t currentTopology;
     int32_t currentIndexType;
     int64_t currentIndexOffset;
+    std::vector<std::function<void()>> commands;
 };
 typedef struct VkCommandBuffer_T* VkCommandBuffer;
 
