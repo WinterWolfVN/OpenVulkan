@@ -2,6 +2,7 @@
 #include <EGL/egl.h>
 #include <cstdint>
 #include <mutex>
+#include <atomic>
 
 //[context.cpp] 
 struct VkInstance_T {
