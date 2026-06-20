@@ -87,9 +87,9 @@ void vkCmdSetScissor(VkCommandBuffer commandBuffer, int32_t firstScissor, int32_
 void vkCmdBindPipeline(VkCommandBuffer commandBuffer, int32_t pipelineBindPoint, VkPipeline pipeline) {
     if (!commandBuffer || !pipeline) return;
     
-    commandBuffer->currentTopology = pipeline->topology;
-    
     int32_t prog = pipeline->program;
+    int32_t isCompute = (pipelineBindPoint == 1);    
+    int32_t topo = pipeline->topology;
     int32_t dTest = pipeline->depthTestEnable;
     int32_t dOp = pipeline->depthCompareOp;
     int32_t cEnable = pipeline->cullModeEnable;
@@ -101,30 +101,45 @@ void vkCmdBindPipeline(VkCommandBuffer commandBuffer, int32_t pipelineBindPoint,
     int32_t bEq = pipeline->blendEquation;
     
     commandBuffer->commands.push_back([=]() {
-        glUseProgram(static_cast<GLuint>(prog));
-        
-        if (dTest) {
-            glEnable(GL_DEPTH_TEST);
-            glDepthFunc(static_cast<GLenum>(dOp));
-        } else {
-            glDisable(GL_DEPTH_TEST);
+        glUseProgram(static_cast<GLuint>(prog));        
+        if (!isCompute) {
+            if (dTest) {
+                glEnable(GL_DEPTH_TEST);
+                glDepthFunc(static_cast<GLenum>(dOp));
+            } else {
+                glDisable(GL_DEPTH_TEST);
+            }
+            
+            if (cEnable) {
+                glEnable(GL_CULL_FACE);
+                glCullFace(static_cast<GLenum>(cFace));
+                glFrontFace(static_cast<GLenum>(fFace));
+            } else {
+                glDisable(GL_CULL_FACE);
+            }
+            
+            if (bEnable) {
+                glEnable(GL_BLEND);
+                glBlendFunc(static_cast<GLenum>(bSrc), static_cast<GLenum>(bDst));
+                glBlendEquation(static_cast<GLenum>(bEq));
+            } else {
+                glDisable(GL_BLEND);
+            }
         }
-        
-        if (cEnable) {
-            glEnable(GL_CULL_FACE);
-            glCullFace(static_cast<GLenum>(cFace));
-            glFrontFace(static_cast<GLenum>(fFace));
-        } else {
-            glDisable(GL_CULL_FACE);
-        }
-        
-        if (bEnable) {
-            glEnable(GL_BLEND);
-            glBlendFunc(static_cast<GLenum>(bSrc), static_cast<GLenum>(bDst));
-            glBlendEquation(static_cast<GLenum>(bEq));
-        } else {
-            glDisable(GL_BLEND);
-        }
+    });
+
+    if (!isCompute) {
+        commandBuffer->currentTopology = topo;
+    }
+}
+
+void vkCmdDispatch(VkCommandBuffer commandBuffer, int32_t groupCountX, int32_t groupCountY, int32_t groupCountZ) {
+    if (!commandBuffer) return;
+    
+    commandBuffer->commands.push_back([=]() {
+        glDispatchCompute(static_cast<GLuint>(groupCountX), 
+                          static_cast<GLuint>(groupCountY), 
+                          static_cast<GLuint>(groupCountZ));
     });
 }
 
