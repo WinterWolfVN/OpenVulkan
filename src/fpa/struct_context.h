@@ -4,10 +4,6 @@
 #include <mutex>
 
 //[context.cpp] 
-static VkPhysicalDevice_T g_cached_gpu;
-static int32_t g_gpu_initialized = 0;
-static std::mutex g_gpu_init_mutex;
-
 struct VkInstance_T {
     EGLDisplay display;
 };
