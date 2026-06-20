@@ -140,3 +140,61 @@ void vkUnmapMemory(VkDevice device, VkDeviceMemory memory) {
         }
     }
 }
+
+int32_t vkCreateCommandPool(VkDevice device, const VkCommandPoolCreateInfo* pCreateInfo, const void* pAllocator, VkCommandPool* pCommandPool) {
+    if (!device || !pCreateInfo || !pCommandPool) return -3;
+    
+    VkCommandPool pool = new VkCommandPool_T();
+    pool->flags = pCreateInfo->flags;
+    pool->queueFamilyIndex = pCreateInfo->queueFamilyIndex;
+    
+    *pCommandPool = pool;
+    return 0;
+}
+
+void vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool, const void* pAllocator) {
+    if (commandPool) {
+        delete commandPool;
+    }
+}
+
+int32_t vkAllocateCommandBuffers(VkDevice device, const VkCommandBufferAllocateInfo* pAllocateInfo, VkCommandBuffer* pCommandBuffers) {
+    if (!device || !pAllocateInfo || !pCommandBuffers) return -3;
+    
+    for (int32_t i = 0; i < pAllocateInfo->commandBufferCount; ++i) {
+        VkCommandBuffer cmdBuf = new VkCommandBuffer_T();
+        cmdBuf->currentTopology = 0;
+        cmdBuf->currentIndexType = 0;
+        cmdBuf->currentIndexOffset = 0;
+        
+        pCommandBuffers[i] = cmdBuf;
+    }
+    
+    return 0;
+}
+
+void vkFreeCommandBuffers(VkDevice device, VkCommandPool commandPool, int32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers) {
+    if (!pCommandBuffers) return;
+    
+    for (int32_t i = 0; i < commandBufferCount; ++i) {
+        if (pCommandBuffers[i]) {
+            delete pCommandBuffers[i];
+        }
+    }
+}
+
+int32_t vkResetCommandBuffer(VkCommandBuffer commandBuffer, int32_t flags) {
+    if (!commandBuffer) return -3;
+    
+    commandBuffer->currentTopology = 0;
+    commandBuffer->currentIndexType = 0;
+    commandBuffer->currentIndexOffset = 0;
+    
+    return 0;
+}
+
+int32_t vkResetCommandPool(VkDevice device, VkCommandPool commandPool, int32_t flags) {
+    if (!device || !commandPool) return -3;
+    
+    return 0;
+}
