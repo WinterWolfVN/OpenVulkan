@@ -1,10 +1,12 @@
 #pragma once
 #include <EGL/egl.h>
-#include <GLES3/gl3.h>
+#include <cstdint>
+#include <mutex>
 
-// [context.cpp] 
+//[context.cpp] 
 static VkPhysicalDevice_T g_cached_gpu;
 static int32_t g_gpu_initialized = 0;
+static std::mutex g_gpu_init_mutex;
 
 struct VkInstance_T {
     EGLDisplay display;
@@ -12,13 +14,15 @@ struct VkInstance_T {
 typedef VkInstance_T* VkInstance;
 
 struct VkPhysicalDevice_T {
-    const char* gpu_name;
+    char deviceName[256];
+    EGLDisplay display;
 };
 typedef VkPhysicalDevice_T* VkPhysicalDevice;
 
 struct VkDevice_T {
     EGLContext context;
     EGLSurface surface;
+    EGLDisplay display;
 };
 typedef VkDevice_T* VkDevice;
 
@@ -46,4 +50,3 @@ struct VkPhysicalDeviceProperties {
     int32_t deviceID;
     char deviceName[256];
 };
-
