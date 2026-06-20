@@ -3,6 +3,9 @@
 #include <GLES3/gl3.h>
 
 // [context.cpp] 
+static VkPhysicalDevice_T g_cached_gpu;
+static int32_t g_gpu_initialized = 0;
+
 struct VkInstance_T {
     EGLDisplay display;
 };
