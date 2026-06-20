@@ -1,6 +1,6 @@
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
-#include "struct.h"
+#include "struct_context.h"
 #include <cstring>
 #include <cstdlib>
 
