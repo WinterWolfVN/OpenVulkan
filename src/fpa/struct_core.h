@@ -32,6 +32,7 @@ typedef struct VkCommandBuffer_T* VkCommandBuffer;
 
 struct VkPipeline_T {
     int32_t program;
+    int32_t bindPoint;
     int32_t topology;
     int32_t depthTestEnable;
     int32_t depthCompareOp;
