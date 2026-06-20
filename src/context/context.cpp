@@ -1,12 +1,11 @@
 #include "struct_context.h"
-#include <EGL/egl.h>
 #include <GLES3/gl3.h>
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
 
 static VkPhysicalDevice_T g_cached_gpu;
-static int32_t g_gpu_initialized = 0;
+static std::atomic<int32_t> g_gpu_initialized{0};
 static std::mutex g_gpu_init_mutex;
 
 int32_t vkCreateInstance(const void* pCreateInfo, const void* pAllocator, VkInstance* pInstance) {
@@ -19,10 +18,11 @@ int32_t vkCreateInstance(const void* pCreateInfo, const void* pAllocator, VkInst
         delete inst;
         return -3;
     }
-    
+    EGLint major = 0, minor = 0;
     if (!eglInitialize(inst->display, nullptr, nullptr)) {
         delete inst;
         return -3;
+        (void)major; (void)minor;
     }
     
     *pInstance = inst;
