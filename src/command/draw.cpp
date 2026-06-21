@@ -19,6 +19,34 @@ int32_t vkEndCommandBuffer(VkCommandBuffer commandBuffer) {
     return 0;
 }
 
+void vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, int32_t contents) {
+    if (!commandBuffer || !pRenderPassBegin) return;    
+    int32_t fbo = pRenderPassBegin->framebuffer ? pRenderPassBegin->framebuffer->fbo : 0;
+    VkRect2D area = pRenderPassBegin->renderArea;   
+    std::vector<VkClearValue> clearValues;
+    if (pRenderPassBegin->clearValueCount > 0 && pRenderPassBegin->pClearValues) {
+        for (int32_t i = 0; i < pRenderPassBegin->clearValueCount; ++i) {
+            clearValues.push_back(pRenderPassBegin->pClearValues[i]);
+        }
+    }
+    
+    commandBuffer->commands.push_back([fbo, area, clearValues]() {
+        glBindFramebuffer(GL_FRAMEBUFFER, static_cast<GLuint>(fbo));      
+        glScissor(static_cast<GLint>(area.offset.x),
+                  static_cast<GLint>(area.offset.y),
+                  static_cast<GLsizei>(area.extent.width),
+                  static_cast<GLsizei>(area.extent.height));
+                  
+        if (!clearValues.empty()) {
+            glClearColor(clearValues[0].color.float32[0],
+                         clearValues[0].color.float32[1],
+                         clearValues[0].color.float32[2],
+                         clearValues[0].color.float32[3]);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        }
+    });
+}
+
 void vkCmdEndRenderPass(VkCommandBuffer commandBuffer) {
     if (!commandBuffer) return;    
     commandBuffer->commands.push_back([]() {
