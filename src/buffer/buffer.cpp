@@ -7,6 +7,8 @@
 #define VK_WHOLE_SIZE (-1LL)
 #endif
 
+extern "C" {
+
 int32_t vkCreateBuffer(VkDevice device, const void* pCreateInfo, const void* pAllocator, VkBuffer* pBuffer) {
     if (!device || !pCreateInfo || !pBuffer) return -3;
     
@@ -198,3 +200,5 @@ int32_t vkResetCommandPool(VkDevice device, VkCommandPool commandPool, int32_t f
     
     return 0;
 }
+
+} 
