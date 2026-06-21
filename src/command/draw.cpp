@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+extern "C" {
+
 int32_t vkBeginCommandBuffer(VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo* pBeginInfo) {
     if (!commandBuffer) return -3;    
     commandBuffer->currentTopology = 0;
@@ -231,3 +233,5 @@ int32_t vkQueueSubmit(VkQueue queue, int32_t submitCount, const VkSubmitInfo* pS
     glFlush();
     return 0;
 }
+
+} 
