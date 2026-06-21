@@ -100,3 +100,35 @@ struct VkSubmitInfo {
     int32_t signalSemaphoreCount;
     const void* pSignalSemaphores;
 };
+
+typedef struct VkRenderPass_T* VkRenderPass;
+
+struct VkFramebuffer_T {
+    int32_t fbo;
+};
+typedef struct VkFramebuffer_T* VkFramebuffer;
+
+union VkClearColorValue {
+    float float32[4];
+    int32_t int32[4];
+};
+
+struct VkClearDepthStencilValue {
+    float depth;
+    int32_t stencil;
+};
+
+union VkClearValue {
+    union VkClearColorValue color;
+    struct VkClearDepthStencilValue depthStencil;
+};
+
+struct VkRenderPassBeginInfo {
+    int32_t sType;
+    const void* pNext;
+    VkRenderPass renderPass;
+    VkFramebuffer framebuffer;
+    struct VkRect2D renderArea;
+    int32_t clearValueCount;
+    const union VkClearValue* pClearValues;
+};
