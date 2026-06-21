@@ -120,9 +120,9 @@ struct VkSamplerCreateInfo {
 
 //[draw.cpp] 
 struct VkCommandBuffer_T {
-    int32_t currentTopology;
-    int32_t currentIndexType;
     int64_t currentIndexOffset;
+    int32_t currentTopology;
+    int32_t currentIndexType;    
     std::vector<std::function<void()>> commands;
 };
 typedef struct VkCommandBuffer_T* VkCommandBuffer;
