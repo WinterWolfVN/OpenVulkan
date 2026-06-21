@@ -173,11 +173,22 @@ void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, int32_t pipelineBind
     
     commandBuffer->commands.push_back([sets]() {
         for (const auto& set : sets) {
-            glBindBufferRange(GL_UNIFORM_BUFFER,
-                              static_cast<GLuint>(set.binding),
-                              static_cast<GLuint>(set.uniformBuffer),
-                              static_cast<GLintptr>(set.offset),
-                              static_cast<GLsizeiptr>(set.size));
+            if (set.descriptorType == 0) {
+                glBindBufferRange(GL_UNIFORM_BUFFER,
+                                  static_cast<GLuint>(set.binding),
+                                  static_cast<GLuint>(set.uniformBuffer),
+                                  static_cast<GLintptr>(set.offset),
+                                  static_cast<GLsizeiptr>(set.size));
+            } else if (set.descriptorType == 1) {
+                glActiveTexture(GL_TEXTURE0 + static_cast<GLuint>(set.binding));
+                if (set.image) {
+                    GLenum target = (set.image->imageType == 2) ? GL_TEXTURE_3D : GL_TEXTURE_2D;
+                    glBindTexture(target, static_cast<GLuint>(set.image->texture));
+                }
+                if (set.sampler) {
+                    glBindSampler(static_cast<GLuint>(set.binding), static_cast<GLuint>(set.sampler->sampler));
+                }
+            }
         }
     });
 }
