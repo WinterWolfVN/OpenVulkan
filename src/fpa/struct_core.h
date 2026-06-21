@@ -118,6 +118,49 @@ struct VkSamplerCreateInfo {
     int32_t unnormalizedCoordinates;
 };
 
+//[command_texture.cpp] 
+struct VkOffset3D {
+    int32_t x;
+    int32_t y;
+    int32_t z;
+};
+
+struct VkImageSubresourceLayers {
+    int32_t aspectMask;
+    int32_t mipLevel;
+    int32_t baseArrayLayer;
+    int32_t layerCount;
+};
+
+struct VkBufferImageCopy {
+    int64_t bufferOffset;
+    int32_t bufferRowLength;
+    int32_t bufferImageHeight;
+    struct VkImageSubresourceLayers imageSubresource;
+    struct VkOffset3D imageOffset;
+    struct VkExtent3D imageExtent;
+};
+
+struct VkImageBlit {
+    struct VkImageSubresourceLayers srcSubresource;
+    struct VkOffset3D srcOffsets[2];
+    struct VkImageSubresourceLayers dstSubresource;
+    struct VkOffset3D dstOffsets[2];
+};
+
+struct VkImageMemoryBarrier {
+    const void* pNext;
+    VkImage image;
+    int32_t sType;
+    int32_t srcAccessMask;
+    int32_t dstAccessMask;
+    int32_t oldLayout;
+    int32_t newLayout;
+    int32_t srcQueueFamilyIndex;
+    int32_t dstQueueFamilyIndex;
+    struct VkImageSubresourceRange subresourceRange;
+};
+
 //[draw.cpp] 
 struct VkCommandBuffer_T {
     int64_t currentIndexOffset;
@@ -146,8 +189,11 @@ typedef struct VkPipeline_T* VkPipeline;
 struct VkDescriptorSet_T {
     int64_t offset;
     int64_t size;
-    int32_t uniformBuffer;    
+    VkImage image;
+    VkSampler sampler;
+    int32_t uniformBuffer;
     int32_t binding;
+    int32_t descriptorType;
 };
 typedef struct VkDescriptorSet_T* VkDescriptorSet;
 
