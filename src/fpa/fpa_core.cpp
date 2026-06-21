@@ -22,6 +22,14 @@ static const FPAEntry dispatch_table[] = {
     {"vkResetCommandBuffer", (PFN_vkVoidFunction)vkResetCommandBuffer},
     {"vkResetCommandPool", (PFN_vkVoidFunction)vkResetCommandPool},
 
+    //[texture.cpp] 
+    {"vkCreateImage", (PFN_vkVoidFunction)vkCreateImage},
+    {"vkDestroyImage", (PFN_vkVoidFunction)vkDestroyImage},
+    {"vkCreateImageView", (PFN_vkVoidFunction)vkCreateImageView},
+    {"vkDestroyImageView", (PFN_vkVoidFunction)vkDestroyImageView},
+    {"vkCreateSampler", (PFN_vkVoidFunction)vkCreateSampler},
+    {"vkDestroySampler", (PFN_vkVoidFunction)vkDestroySampler},
+
     // [draw.cpp]
     {"vkBeginCommandBuffer", (PFN_vkVoidFunction)vkBeginCommandBuffer},
     {"vkEndCommandBuffer", (PFN_vkVoidFunction)vkEndCommandBuffer},
