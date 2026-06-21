@@ -13,35 +13,6 @@ void vkCmdPipelineBarrier(VkCommandBuffer commandBuffer, int32_t srcStageMask, i
     });
 }
 
-void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, int32_t pipelineBindPoint, VkPipelineLayout layout, int32_t firstSet, int32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets, int32_t dynamicOffsetCount, const int32_t* pDynamicOffsets) {
-    if (!commandBuffer || !pDescriptorSets) return;    
-    std::vector<VkDescriptorSet_T> sets(descriptorSetCount);
-    for (int32_t i = 0; i < descriptorSetCount; ++i) {
-        if (pDescriptorSets[i]) sets[i] = *(pDescriptorSets[i]);
-    }
-    
-    commandBuffer->commands.push_back([sets]() {
-        for (const auto& set : sets) {
-            if (set.descriptorType == 0) {
-                glBindBufferRange(GL_UNIFORM_BUFFER,
-                                  static_cast<GLuint>(set.binding),
-                                  static_cast<GLuint>(set.uniformBuffer),
-                                  static_cast<GLintptr>(set.offset),
-                                  static_cast<GLsizeiptr>(set.size));
-            } else if (set.descriptorType == 1) {
-                glActiveTexture(GL_TEXTURE0 + static_cast<GLuint>(set.binding));
-                if (set.image) {
-                    GLenum target = (set.image->imageType == 2) ? GL_TEXTURE_3D : GL_TEXTURE_2D;
-                    glBindTexture(target, static_cast<GLuint>(set.image->texture));
-                }
-                if (set.sampler) {
-                    glBindSampler(static_cast<GLuint>(set.binding), static_cast<GLuint>(set.sampler->sampler));
-                }
-            }
-        }
-    });
-}
-
 void vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage, int32_t dstImageLayout, int32_t regionCount, const VkBufferImageCopy* pRegions) {
     if (!commandBuffer || !srcBuffer || !dstImage || !pRegions) return;    
     std::vector<VkBufferImageCopy> regions(pRegions, pRegions + regionCount);
