@@ -8,8 +8,7 @@ int32_t vkBeginCommandBuffer(VkCommandBuffer commandBuffer, const VkCommandBuffe
     commandBuffer->currentTopology = 0;
     commandBuffer->currentIndexType = 0;
     commandBuffer->currentIndexOffset = 0;
-    commandBuffer->commands.clear(); 
-    
+    commandBuffer->commands.clear();     
     return 0;
 }
 
@@ -225,6 +224,7 @@ int32_t vkQueueSubmit(VkQueue queue, int32_t submitCount, const VkSubmitInfo* pS
                 for (const auto& command : cmd->commands) {
                     command();
                 }
+                cmd->commands.clear();
             }
         }
     }    
