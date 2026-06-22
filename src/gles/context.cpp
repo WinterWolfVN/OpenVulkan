@@ -1,4 +1,4 @@
-#include "../fpa/struct_context.h"
+#include "../struct/stgles.h"
 #include <GLES3/gl3.h>
 #include <cstring>
 #include <cstdlib>
