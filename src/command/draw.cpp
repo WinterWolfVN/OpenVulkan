@@ -2,6 +2,7 @@
 #include <GLES3/gl31.h>
 #include <cstdint>
 #include <vector>
+#include <thread>
 
 extern "C" {
 
@@ -257,20 +258,37 @@ void vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, in
 }
 
 int32_t vkQueueSubmit(VkQueue queue, int32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
-    if (!pSubmits) return -3;    
+    if (!pSubmits) return -3;
+    std::vector<VkCommandBuffer> allCmds;
     for (int32_t i = 0; i < submitCount; ++i) {
         for (int32_t j = 0; j < pSubmits[i].commandBufferCount; ++j) {
-            VkCommandBuffer cmd = pSubmits[i].pCommandBuffers[j];
-            if (cmd) {
-                for (const auto& command : cmd->commands) {
-                    command();
-                }
-                cmd->commands.clear();
+            if (pSubmits[i].pCommandBuffers[j]) {
+                allCmds.push_back(pSubmits[i].pCommandBuffers[j]);
             }
         }
-    }    
+    }
+    int32_t totalCmds = allCmds.size();
+    if (totalCmds == 0) return 0;
+    int32_t numThreads = 4;
+    std::vector<std::thread> workers;
+    for (int32_t t = 0; t < numThreads; ++t) {
+        workers.push_back(std::thread([t, numThreads, totalCmds, allCmds]() {
+            int32_t startIdx = (totalCmds * t) / numThreads;
+            int32_t endIdx = (totalCmds * (t + 1)) / numThreads;            
+            for (int32_t i = startIdx; i < endIdx; ++i) {
+                for (const auto& command : allCmds[i]->commands) {
+                    command();
+                }
+            }
+        }));
+    }
+    for (int32_t i = 0; i < numThreads; ++i) {
+        workers[i].join();
+    }
     glFlush();
     return 0;
+}
+
 }
 
 } 
