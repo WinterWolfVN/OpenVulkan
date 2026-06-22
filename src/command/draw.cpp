@@ -166,33 +166,37 @@ void vkCmdDispatch(VkCommandBuffer commandBuffer, int32_t groupCountX, int32_t g
 
 void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, int32_t pipelineBindPoint, VkPipelineLayout layout, int32_t firstSet, int32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets, int32_t dynamicOffsetCount, const int32_t* pDynamicOffsets) {
     if (!commandBuffer || !pDescriptorSets) return;    
-    std::vector<VkDescriptorSet_T> sets(descriptorSetCount);
+    std::vector<VkDescriptorBinding> activeBindings;    
     for (int32_t i = 0; i < descriptorSetCount; ++i) {
-        if (pDescriptorSets[i]) sets[i] = *(pDescriptorSets[i]);
+        if (pDescriptorSets[i]) {
+            for (int32_t k = 0; k < pDescriptorSets[i]->bindingCount; ++k) {
+                activeBindings.push_back(pDescriptorSets[i]->bindings[k]);
+            }
+        }
     }
     
-    commandBuffer->commands.push_back([sets]() {
-        for (const auto& set : sets) {
-            if (set.descriptorType == 0) {
-                glBindBufferRange(GL_UNIFORM_BUFFER,
-                                  static_cast<GLuint>(set.binding),
-                                  static_cast<GLuint>(set.uniformBuffer),
-                                  static_cast<GLintptr>(set.offset),
-                                  static_cast<GLsizeiptr>(set.size));
-            } else if (set.descriptorType == 1) {
-                glActiveTexture(GL_TEXTURE0 + static_cast<GLuint>(set.binding));
-                if (set.image) {
-                    GLenum target = (set.image->imageType == 2) ? GL_TEXTURE_3D : GL_TEXTURE_2D;
-                    glBindTexture(target, static_cast<GLuint>(set.image->texture));
+    commandBuffer->commands.push_back([activeBindings]() {
+        for (const auto& b : activeBindings) {
+            if (b.type == 6) { 
+                glBindBufferRange(GL_UNIFORM_BUFFER, static_cast<GLuint>(b.binding), static_cast<GLuint>(b.bufferId), static_cast<GLintptr>(b.offset), static_cast<GLsizeiptr>(b.size));
+            } 
+            else if (b.type == 7) { 
+                glBindBufferRange(GL_SHADER_STORAGE_BUFFER, static_cast<GLuint>(b.binding), static_cast<GLuint>(b.bufferId), static_cast<GLintptr>(b.offset), static_cast<GLsizeiptr>(b.size));
+            }
+            else if (b.type == 1) { 
+                glActiveTexture(GL_TEXTURE0 + static_cast<GLuint>(b.binding));
+                glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(b.textureId));
+                if (b.samplerId != 0) {
+                    glBindSampler(static_cast<GLuint>(b.binding), static_cast<GLuint>(b.samplerId));
                 }
-                if (set.sampler) {
-                    glBindSampler(static_cast<GLuint>(set.binding), static_cast<GLuint>(set.sampler->sampler));
-                }
+            }
+            else if (b.type == 3) { 
+                glBindImageTexture(static_cast<GLuint>(b.binding), static_cast<GLuint>(b.textureId), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
             }
         }
     });
 }
-
+        
 void vkCmdDraw(VkCommandBuffer commandBuffer, int32_t vertexCount, int32_t instanceCount, int32_t firstVertex, int32_t firstInstance) {
     if (!commandBuffer) return;    
     int32_t topo = commandBuffer->currentTopology;
