@@ -53,6 +53,15 @@ static const FPAEntry dispatch_table[] = {
     {"vkCmdDispatch", (PFN_vkVoidFunction)vkCmdDispatch}, 
     {"vkCmdBindDescriptorSets", (PFN_vkVoidFunction)vkCmdBindDescriptorSets},
     {"vkQueueSubmit", (PFN_vkVoidFunction)vkQueueSubmit},    
+
+    //[descriptor.cpp] 
+    {"vkCreateDescriptorSetLayout", (PFN_vkVoidFunction)vkCreateDescriptorSetLayout},
+    {"vkDestroyDescriptorSetLayout", (PFN_vkVoidFunction)vkDestroyDescriptorSetLayout},
+    {"vkCreateDescriptorPool", (PFN_vkVoidFunction)vkCreateDescriptorPool},
+    {"vkDestroyDescriptorPool", (PFN_vkVoidFunction)vkDestroyDescriptorPool},
+    {"vkAllocateDescriptorSets", (PFN_vkVoidFunction)vkAllocateDescriptorSets},
+    {"vkFreeDescriptorSets", (PFN_vkVoidFunction)vkFreeDescriptorSets},
+    {"vkUpdateDescriptorSets", (PFN_vkVoidFunction)vkUpdateDescriptorSets},
 };
 
 extern "C"
