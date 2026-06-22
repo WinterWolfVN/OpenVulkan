@@ -1,4 +1,4 @@
-#include "../struct/stcore.h"
+#include "../struct/stbuffer.h"
 #include <GLES3/gl31.h>
 #include <cstring>
 #include <cstdlib>
