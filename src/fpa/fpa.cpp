@@ -6,6 +6,14 @@ struct FPAEntry {
 };
 
 static const FPAEntry dispatch_table[] = {
+    // [context.cpp] 
+    {"vkCreateInstance", (PFN_vkVoidFunction)vkCreateInstance},
+    {"vkCreateDevice", (PFN_vkVoidFunction)vkCreateDevice},
+    {"vkEnumeratePhysicalDevices", (PFN_vkVoidFunction)vkEnumeratePhysicalDevices},
+    {"vkGetPhysicalDeviceProperties", (PFN_vkVoidFunction)vkGetPhysicalDeviceProperties},
+    {"vkGetPhysicalDeviceMemoryProperties", (PFN_vkVoidFunction)vkGetPhysicalDeviceMemoryProperties},
+    {"vkCreateFramebuffer", (PFN_vkVoidFunction)vkCreateFramebuffer},
+    {"vkDestroyFramebuffer", (PFN_vkVoidFunction)vkDestroyFramebuffer},
 
     // [buffer.cpp]
     {"vkCreateBuffer", (PFN_vkVoidFunction)vkCreateBuffer},
@@ -30,7 +38,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkCreateSampler", (PFN_vkVoidFunction)vkCreateSampler},
     {"vkDestroySampler", (PFN_vkVoidFunction)vkDestroySampler},
 
-    //[command_texture.cpp] 
+    //[cmd_texture.cpp] 
     {"vkCmdPipelineBarrier", (PFN_vkVoidFunction)vkCmdPipelineBarrier},
     {"vkCmdCopyBufferToImage", (PFN_vkVoidFunction)vkCmdCopyBufferToImage},
     {"vkCmdCopyImageToBuffer", (PFN_vkVoidFunction)vkCmdCopyImageToBuffer},
@@ -62,6 +70,10 @@ static const FPAEntry dispatch_table[] = {
     {"vkAllocateDescriptorSets", (PFN_vkVoidFunction)vkAllocateDescriptorSets},
     {"vkFreeDescriptorSets", (PFN_vkVoidFunction)vkFreeDescriptorSets},
     {"vkUpdateDescriptorSets", (PFN_vkVoidFunction)vkUpdateDescriptorSets},
+
+    // [shader.cpp] 
+    {"vkCreateShaderModule", (PFN_vkVoidFunction)vkCreateShaderModule},
+    {"vkDestroyShaderModule", (PFN_vkVoidFunction)vkDestroyShaderModule},
 };
 
 extern "C"
