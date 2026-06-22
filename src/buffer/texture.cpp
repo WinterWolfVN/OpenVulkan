@@ -1,4 +1,4 @@
-#include "../struct/stcore.h"
+#include "../struct/stbuffer.h"
 #include <GLES3/gl31.h>
 #include <cstdint>
 
@@ -6,7 +6,6 @@ extern "C" {
 
 int32_t vkCreateImage(VkDevice device, const VkImageCreateInfo* pCreateInfo, const void* pAllocator, VkImage* pImage) {
     if (!device || !pCreateInfo || !pImage) return -3;
-
     VkImage img = new VkImage_T();
     img->texture = 0;
     img->imageType = pCreateInfo->imageType;
@@ -63,7 +62,6 @@ void vkDestroyImage(VkDevice device, VkImage image, const void* pAllocator) {
 
 int32_t vkCreateImageView(VkDevice device, const VkImageViewCreateInfo* pCreateInfo, const void* pAllocator, VkImageView* pView) {
     if (!device || !pCreateInfo || !pView) return -3;
-
     VkImageView view = new VkImageView_T();
     view->image = pCreateInfo->image;
     view->viewType = pCreateInfo->viewType;
@@ -81,7 +79,6 @@ void vkDestroyImageView(VkDevice device, VkImageView imageView, const void* pAll
 
 int32_t vkCreateSampler(VkDevice device, const VkSamplerCreateInfo* pCreateInfo, const void* pAllocator, VkSampler* pSampler) {
     if (!device || !pCreateInfo || !pSampler) return -3;
-
     VkSampler sampler = new VkSampler_T();
     sampler->sampler = 0;
 
