@@ -28,7 +28,9 @@ int32_t vkAllocateDescriptorSets(VkDevice device, const VkDescriptorSetAllocateI
     if (!device || !pAllocateInfo || !pDescriptorSets) return -3;
     
     for (int32_t i = 0; i < pAllocateInfo->descriptorSetCount; ++i) {
-        pDescriptorSets[i] = new VkDescriptorSet_T();
+        VkDescriptorSet set = new VkDescriptorSet_T();
+        set->bindingCount = 0;
+        pDescriptorSets[i] = set;
     }
     return 0;
 }
@@ -49,14 +51,15 @@ void vkUpdateDescriptorSets(VkDevice device, int32_t descriptorWriteCount, const
         if (!set) continue;
 
         for (int32_t j = 0; j < write.descriptorCount; ++j) {
-            VkDescriptorBinding b = {};
+            VkDescriptorBinding b;
+            b.offset = 0;
+            b.size = 0;
             b.binding = write.dstBinding + j;
             b.type = write.descriptorType;
             b.bufferId = 0;
-            b.offset = 0;
-            b.size = 0;
             b.textureId = 0;
             b.samplerId = 0;
+            b.padding = 0;
 
             if ((write.descriptorType == 6 || write.descriptorType == 7) && write.pBufferInfo) {
                 b.bufferId = write.pBufferInfo[j].buffer->buffer;
@@ -72,17 +75,22 @@ void vkUpdateDescriptorSets(VkDevice device, int32_t descriptorWriteCount, const
                 }
             }
             
-            bool found = false;
-            for (auto& existing : set->bindings) {
-                if (existing.binding == b.binding) {
-                    existing = b;
-                    found = true;
+            int32_t foundIdx = -1;
+            for (int32_t k = 0; k < set->bindingCount; ++k) {
+                if (set->bindings[k].binding == b.binding) {
+                    foundIdx = k;
                     break;
                 }
             }
-            if (!found) set->bindings.push_back(b);
+            
+            if (foundIdx != -1) {
+                set->bindings[foundIdx] = b;
+            } else if (set->bindingCount < 16) {
+                set->bindings[set->bindingCount] = b;
+                set->bindingCount++;
+            }
         }
     }
 }
 
-}
+}        
