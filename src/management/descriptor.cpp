@@ -1,4 +1,4 @@
-#include "../struct/core.h"
+#include "../struct/stcore.h"
 #include <GLES3/gl31.h>
 #include <cstdint>
 
