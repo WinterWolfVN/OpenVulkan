@@ -145,20 +145,28 @@ void vkCmdBindPipeline(VkCommandBuffer commandBuffer, int32_t pipelineBindPoint,
 
 void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, int32_t pipelineBindPoint, VkPipelineLayout layout, int32_t firstSet, int32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets, int32_t dynamicOffsetCount, const int32_t* pDynamicOffsets) {
     if (!commandBuffer || !pDescriptorSets || descriptorSetCount <= 0) return;    
-    std::vector<VkDescriptorBinding> activeBindings;    
+    std::vector<VkDescriptorBinding> activeBindings;
+    int32_t currentDynamicIdx = 0;    
     for (int32_t i = 0; i < descriptorSetCount; ++i) {
         if (pDescriptorSets[i]) {
             for (int32_t k = 0; k < pDescriptorSets[i]->bindingCount; ++k) {
-                activeBindings.push_back(pDescriptorSets[i]->bindings[k]);
+                VkDescriptorBinding b = pDescriptorSets[i]->bindings[k];                
+                if (b.type == 8 || b.type == 9) {
+                    if (pDynamicOffsets && currentDynamicIdx < dynamicOffsetCount) {
+                        b.offset += pDynamicOffsets[currentDynamicIdx];
+                        currentDynamicIdx++;
+                    }
+                }                
+                activeBindings.push_back(b);
             }
         }
     }    
     commandBuffer->commands.push_back([bindings = std::move(activeBindings)]() {
         for (const auto& b : bindings) {
-            if (b.type == 6) { 
+            if (b.type == 6 || b.type == 8) { 
                 glBindBufferRange(GL_UNIFORM_BUFFER, static_cast<GLuint>(b.binding), static_cast<GLuint>(b.bufferId), static_cast<GLintptr>(b.offset), static_cast<GLsizeiptr>(b.size));
             } 
-            else if (b.type == 7) { 
+            else if (b.type == 7 || b.type == 9) { 
                 glBindBufferRange(GL_SHADER_STORAGE_BUFFER, static_cast<GLuint>(b.binding), static_cast<GLuint>(b.bufferId), static_cast<GLintptr>(b.offset), static_cast<GLsizeiptr>(b.size));
             }
             else if (b.type == 1) { 
