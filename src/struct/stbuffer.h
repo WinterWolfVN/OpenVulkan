@@ -11,6 +11,7 @@ struct VkDeviceMemory_T {
     std::atomic<int32_t> mappedCount;
     int32_t isMapped;
 };
+typedef struct VkDeviceMemory_T* VkDeviceMemory;
 
 struct VkBuffer_T {
     int64_t memoryOffset;
@@ -19,6 +20,7 @@ struct VkBuffer_T {
     int32_t usage;
     struct VkDeviceMemory_T* memory;    
 };
+typedef struct VkBuffer_T* VkBuffer;
 
 // [texture.cpp] 
 struct VkImage_T {
@@ -31,22 +33,26 @@ struct VkImage_T {
     int32_t mipLevels;
     int32_t arrayLayers;
 };
+typedef struct VkImage_T* VkImage;
 
 struct VkImageView_T {
     VkImage image;
     int32_t viewType;
     int32_t format;
 };
+typedef struct VkImageView_T* VkImageView;
 
 struct VkSampler_T {
     int32_t sampler;
 };
+typedef struct VkSampler_T* VkSampler;
 
 struct VkExtent3D {
     int32_t width;
     int32_t height;
     int32_t depth;
 };
+typedef struct VkExtent3D VkExtent3D;
 
 struct VkImageCreateInfo {
     int32_t sType;
@@ -65,6 +71,7 @@ struct VkImageCreateInfo {
     const int32_t* pQueueFamilyIndices;
     int32_t initialLayout;
 };
+typedef struct VkImageCreateInfo VkImageCreateInfo;
 
 struct VkComponentMapping {
     int32_t r;
@@ -72,6 +79,7 @@ struct VkComponentMapping {
     int32_t b;
     int32_t a;
 };
+typedef struct VkComponentMapping VkComponentMapping;
 
 struct VkImageSubresourceRange {
     int32_t aspectMask;
@@ -80,6 +88,7 @@ struct VkImageSubresourceRange {
     int32_t baseArrayLayer;
     int32_t layerCount;
 };
+typedef struct VkImageSubresourceRange VkImageSubresourceRange;
 
 struct VkImageViewCreateInfo {
     int32_t sType;
@@ -91,6 +100,7 @@ struct VkImageViewCreateInfo {
     struct VkComponentMapping components;
     struct VkImageSubresourceRange subresourceRange;
 };
+typedef struct VkImageViewCreateInfo VkImageViewCreateInfo;
 
 struct VkSamplerCreateInfo {
     int32_t sType;
@@ -112,3 +122,4 @@ struct VkSamplerCreateInfo {
     int32_t borderColor;
     int32_t unnormalizedCoordinates;
 };
+typedef struct VkSamplerCreateInfo VkSamplerCreateInfo;
