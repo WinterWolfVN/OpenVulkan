@@ -1,26 +1,30 @@
-/#pragma once
+#pragma once
 #include <cstdint>
 
-//[descriptor.cpp] 
+// [descriptor.cpp] 
 struct VkDescriptorSetLayout_T {
     int32_t dummy;
 };
+typedef struct VkDescriptorSetLayout_T* VkDescriptorSetLayout;
 
 struct VkDescriptorPool_T {
     int32_t dummy;
 };
+typedef struct VkDescriptorPool_T* VkDescriptorPool;
 
 struct VkDescriptorBufferInfo {
     VkBuffer buffer;
     int64_t offset;
     int64_t range;
 };
+typedef struct VkDescriptorBufferInfo VkDescriptorBufferInfo;
 
 struct VkDescriptorImageInfo {
     VkSampler sampler;
     VkImageView imageView;
     int32_t imageLayout;
 };
+typedef struct VkDescriptorImageInfo VkDescriptorImageInfo;
 
 struct VkWriteDescriptorSet {
     int32_t sType;
@@ -34,6 +38,7 @@ struct VkWriteDescriptorSet {
     const VkDescriptorBufferInfo* pBufferInfo;
     const void* pTexelBufferView;
 };
+typedef struct VkWriteDescriptorSet VkWriteDescriptorSet;
 
 struct VkDescriptorSetLayoutCreateInfo {
     int32_t sType;
@@ -42,6 +47,7 @@ struct VkDescriptorSetLayoutCreateInfo {
     int32_t bindingCount;
     const void* pBindings;
 };
+typedef struct VkDescriptorSetLayoutCreateInfo VkDescriptorSetLayoutCreateInfo;
 
 struct VkDescriptorPoolCreateInfo {
     int32_t sType;
@@ -51,6 +57,7 @@ struct VkDescriptorPoolCreateInfo {
     int32_t poolSizeCount;
     const void* pPoolSizes;
 };
+typedef struct VkDescriptorPoolCreateInfo VkDescriptorPoolCreateInfo;
 
 struct VkDescriptorSetAllocateInfo {
     int32_t sType;
@@ -59,6 +66,7 @@ struct VkDescriptorSetAllocateInfo {
     int32_t descriptorSetCount;
     const VkDescriptorSetLayout* pSetLayouts;
 };
+typedef struct VkDescriptorSetAllocateInfo VkDescriptorSetAllocateInfo;
 
 struct VkDescriptorBinding {
     int32_t binding;
@@ -69,4 +77,4 @@ struct VkDescriptorBinding {
     int32_t textureId;
     int32_t samplerId;
 };
-
+typedef struct VkDescriptorBinding VkDescriptorBinding;
