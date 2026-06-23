@@ -44,25 +44,21 @@ struct VkViewport {
     float minDepth;
     float maxDepth;
 };
-typedef struct VkViewport VkViewport;
 
 struct VkExtent2D {
     int32_t width;
     int32_t height;
 };
-typedef struct VkExtent2D VkExtent2D;
 
 struct VkOffset2D {
     int32_t x;
     int32_t y;
 };
-typedef struct VkOffset2D VkOffset2D;
 
 struct VkRect2D {
     VkOffset2D offset;
     VkExtent2D extent;
 };
-typedef struct VkRect2D VkRect2D;
 
 struct VkCommandBufferBeginInfo {
     int32_t sType;
@@ -70,7 +66,6 @@ struct VkCommandBufferBeginInfo {
     int32_t flags;
     const void* pInheritanceInfo;
 };
-typedef struct VkCommandBufferBeginInfo VkCommandBufferBeginInfo;
 
 struct VkSubmitInfo {
     int32_t sType;
@@ -83,7 +78,6 @@ struct VkSubmitInfo {
     int32_t signalSemaphoreCount;
     const void* pSignalSemaphores;
 };
-typedef struct VkSubmitInfo VkSubmitInfo;
 
 struct VkFramebuffer_T {
     int32_t fbo;
@@ -99,7 +93,6 @@ struct VkClearDepthStencilValue {
     float depth;
     int32_t stencil;
 };
-typedef struct VkClearDepthStencilValue VkClearDepthStencilValue;
 
 union VkClearValue {
     union VkClearColorValue color;
@@ -115,7 +108,6 @@ struct VkRenderPassBeginInfo {
     int32_t clearValueCount;
     const union VkClearValue* pClearValues;
 };
-typedef struct VkRenderPassBeginInfo VkRenderPassBeginInfo;
 
 // [cmd_texture.cpp] 
 struct VkOffset3D {
@@ -123,7 +115,6 @@ struct VkOffset3D {
     int32_t y;
     int32_t z;
 };
-typedef struct VkOffset3D VkOffset3D;
 
 struct VkImageSubresourceLayers {
     int32_t aspectMask;
@@ -131,7 +122,6 @@ struct VkImageSubresourceLayers {
     int32_t baseArrayLayer;
     int32_t layerCount;
 };
-typedef struct VkImageSubresourceLayers VkImageSubresourceLayers;
 
 struct VkBufferImageCopy {
     int64_t bufferOffset;
@@ -141,7 +131,6 @@ struct VkBufferImageCopy {
     struct VkOffset3D imageOffset;
     struct VkExtent3D imageExtent;
 };
-typedef struct VkBufferImageCopy VkBufferImageCopy;
 
 struct VkImageBlit {
     struct VkImageSubresourceLayers srcSubresource;
@@ -149,7 +138,6 @@ struct VkImageBlit {
     struct VkImageSubresourceLayers dstSubresource;
     struct VkOffset3D dstOffsets[2];
 };
-typedef struct VkImageBlit VkImageBlit;
 
 struct VkImageMemoryBarrier {
     const void* pNext;
@@ -163,4 +151,3 @@ struct VkImageMemoryBarrier {
     int32_t dstQueueFamilyIndex;
     struct VkImageSubresourceRange subresourceRange;
 };
-typedef struct VkImageMemoryBarrier VkImageMemoryBarrier; 
