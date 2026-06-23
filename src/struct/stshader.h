@@ -14,4 +14,3 @@ struct VkShaderModuleCreateInfo {
     int64_t codeSize;
     const uint32_t* pCode;
 };
-typedef struct VkShaderModuleCreateInfo VkShaderModuleCreateInfo;
