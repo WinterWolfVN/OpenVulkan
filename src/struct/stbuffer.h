@@ -52,7 +52,6 @@ struct VkExtent3D {
     int32_t height;
     int32_t depth;
 };
-typedef struct VkExtent3D VkExtent3D;
 
 struct VkImageCreateInfo {
     int32_t sType;
@@ -71,7 +70,6 @@ struct VkImageCreateInfo {
     const int32_t* pQueueFamilyIndices;
     int32_t initialLayout;
 };
-typedef struct VkImageCreateInfo VkImageCreateInfo;
 
 struct VkComponentMapping {
     int32_t r;
@@ -79,7 +77,6 @@ struct VkComponentMapping {
     int32_t b;
     int32_t a;
 };
-typedef struct VkComponentMapping VkComponentMapping;
 
 struct VkImageSubresourceRange {
     int32_t aspectMask;
@@ -88,7 +85,6 @@ struct VkImageSubresourceRange {
     int32_t baseArrayLayer;
     int32_t layerCount;
 };
-typedef struct VkImageSubresourceRange VkImageSubresourceRange;
 
 struct VkImageViewCreateInfo {
     int32_t sType;
@@ -100,7 +96,6 @@ struct VkImageViewCreateInfo {
     struct VkComponentMapping components;
     struct VkImageSubresourceRange subresourceRange;
 };
-typedef struct VkImageViewCreateInfo VkImageViewCreateInfo;
 
 struct VkSamplerCreateInfo {
     int32_t sType;
@@ -122,4 +117,3 @@ struct VkSamplerCreateInfo {
     int32_t borderColor;
     int32_t unnormalizedCoordinates;
 };
-typedef struct VkSamplerCreateInfo VkSamplerCreateInfo;
