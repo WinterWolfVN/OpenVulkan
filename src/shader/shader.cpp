@@ -1,4 +1,5 @@
 #include "../struct/stshader.h"
+#include "translatespirv.h'
 #include <GLES3/gl31.h>
 #include <cstring>
 #include <cstdlib>
@@ -15,6 +16,9 @@ int32_t vkCreateShaderModule(VkDevice device, const VkShaderModuleCreateInfo* pC
         return -3;
     }
     std::memcpy(module->code, pCreateInfo->pCode, static_cast<size_t>(pCreateInfo->codeSize));
+    const uint32_t* spv_code = reinterpret_cast<const uint32_t*>(pCreateInfo->pCode);
+    size_t word_count = pCreateInfo->codeSize / 4; 
+    module->glsl_source = TranslateSpirvFull(spv_code, word_count);
     *pShaderModule = module;
     return 0;
 }
