@@ -3,6 +3,7 @@
 #include <string.h>
 #include <vector>
 #include "spirv.h"
+#include "spirvtogles.h"
 
 #define TSTR std::to_string
 #define OP1(op, sym) case op: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = "+sym+"v_"+TSTR(spv[i+3])+";\n"; break;
