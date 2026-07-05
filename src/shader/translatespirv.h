@@ -14,6 +14,12 @@ std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
     std::unordered_map<uint32_t, std::string> tm, expr;
     std::unordered_map<uint32_t, uint32_t> loc, bind, blt;
     std::unordered_map<uint32_t, std::string> blocks;
+    std::unordered_map<uint32_t, std::vector<std::string>> phi_defs;
+    #define APPLY_PHI \
+    if (phi_defs.count(cur_label)) { \
+        for (auto& p : phi_defs[cur_label]) cur_blk += "        " + tm[p.first] + " _phi_" + TSTR(p.first) + " = " + p.second + ";\n"; \
+        for (auto& p : phi_defs[cur_label]) cur_blk += "        v_" + TSTR(p.first) + " = _phi_" + TSTR(p.first) + ";\n"; \
+    }
     
     std::string head = "#version 310 es\nprecision highp float;\nprecision highp int;\n\n";
     std::string vars = "";
@@ -80,16 +86,33 @@ std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                 cur_blk = "    case " + TSTR(cur_label) + ":\n";
                 break;
 
-            case SpvOpLoad: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = "+expr.count(spv[i+3])?expr[spv[i+3]]:("v_"+TSTR(spv[i+3]))+";\n"; break;
+            case SpvOpLoad: cur_blk += tm[spv[i+1]] + " v_" + TSTR(spv[i+2]) + " = " + (expr.count(spv[i+3]) ? expr[spv[i+3]] : ("v_" + TSTR(spv[i+3]))) + ";\n"+expr.count(spv[i+3])?expr[spv[i+3]]:("v_"+TSTR(spv[i+3]))+";\n"; break;
             case SpvOpStore: cur_blk += (expr.count(spv[i+1])?expr[spv[i+1]]:("v_"+TSTR(spv[i+1])))+" = v_"+TSTR(spv[i+2])+";\n"; break;
             
             case SpvOpImageSampleImplicitLod: case SpvOpImageSampleExplicitLod:
                 cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = texture(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+");\n"; break;
 
+            case SpvOpPhi: {
+                uint32_t id_kq = spv[i+2];
+                tm[id_kq] = tm[spv[i+1]];
+                vars += tm[id_kq] + " v_" + TSTR(id_kq) + ";\n";
+                for (size_t j = 3; j < len; j += 2) {
+                    std::string val = expr.count(spv[i+j]) ? expr[spv[i+j]] : ("v_" + TSTR(spv[i+j]));
+                    phi_defs[spv[i+j+1]].push_back({id_kq, val});
+                }
+                break;
+            }
+            case SpvOpSelectionMerge: 
+            case SpvOpLoopMerge:
+                break; 
             case SpvOpBranch:
-                cur_blk += "        _state = " + TSTR(spv[i+1]) + "; break;\n"; break;
+                APPLY_PHI
+                cur_blk += "        _state = " + TSTR(spv[i+1]) + "; break;\n"; 
+                break;
             case SpvOpBranchConditional:
-                cur_blk += "        if(v_"+TSTR(spv[i+1])+") _state = "+TSTR(spv[i+2])+"; else _state = "+TSTR(spv[i+3])+"; break;\n"; break;
+                APPLY_PHI
+                cur_blk += "        if(v_"+TSTR(spv[i+1])+") _state = "+TSTR(spv[i+2])+"; else _state = "+TSTR(spv[i+3])+"; break;\n"; 
+                break;
             case SpvOpReturn: case SpvOpReturnValue:
                 cur_blk += "        _state = 0; break;\n"; break;
 
