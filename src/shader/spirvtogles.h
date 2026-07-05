@@ -3,4 +3,4 @@
 #include <stddef.h>
 #include <string>
 
-std::string TranslateSpirvToGLES31(const uint32_t* spv, size_t size);
+std::string TranslateSpirvFull(const uint32_t* spv, size_t size);
