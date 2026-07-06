@@ -3,6 +3,38 @@
 #include <cstdint>
 #include <vector>
 
+static uint32_t MapBlendFactor(int32_t vkFactor) {
+    switch (vkFactor) {
+        case 0: return GL_ZERO;
+        case 1: return GL_ONE;
+        case 2: return GL_SRC_COLOR;
+        case 3: return GL_ONE_MINUS_SRC_COLOR;
+        case 4: return GL_DST_COLOR;
+        case 5: return GL_ONE_MINUS_DST_COLOR;
+        case 6: return GL_SRC_ALPHA;
+        case 7: return GL_ONE_MINUS_SRC_ALPHA;
+        case 8: return GL_DST_ALPHA;
+        case 9: return GL_ONE_MINUS_DST_ALPHA;
+        case 10: return GL_CONSTANT_COLOR;
+        case 11: return GL_ONE_MINUS_CONSTANT_COLOR;
+        case 12: return GL_CONSTANT_ALPHA;
+        case 13: return GL_ONE_MINUS_CONSTANT_ALPHA;
+        case 14: return GL_SRC_ALPHA_SATURATE;
+        default: return GL_ZERO;
+    }
+}
+
+static uint32_t MapBlendOp(int32_t vkOp) {
+    switch (vkOp) {
+        case 0: return GL_FUNC_ADD;
+        case 1: return GL_FUNC_SUBTRACT;
+        case 2: return GL_FUNC_REVERSE_SUBTRACT;
+        case 3: return GL_MIN;
+        case 4: return GL_MAX;
+        default: return GL_FUNC_ADD;
+    }
+}
+
 extern "C" {
 
 int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache, int32_t createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos, const void* pAllocator, VkPipeline* pPipelines) {
@@ -41,12 +73,19 @@ int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache
             shaders.push_back(shader);
         }
 
-        if (compileFailed) {
+            if (compileFailed) {
             for (GLuint s : shaders) glDeleteShader(s);
             glDeleteProgram(pipeline->program);
-            delete pipeline;
+            delete pipeline;            
+            for (int32_t k = 0; k < i; ++k) {
+                if (pPipelines[k]) {
+                    glDeleteProgram(pPipelines[k]->program);
+                    delete pPipelines[k];
+                    pPipelines[k] = nullptr;
+                }
+            }
             return -3;
-        }
+                }
 
         glLinkProgram(pipeline->program);
 
@@ -57,11 +96,18 @@ int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache
             glDeleteShader(s);
         }
 
-        if (!linked) {
+            if (!linked) {
             glDeleteProgram(pipeline->program);
-            delete pipeline;
+            delete pipeline;            
+            for (int32_t k = 0; k < i; ++k) {
+                if (pPipelines[k]) {
+                    glDeleteProgram(pPipelines[k]->program);
+                    delete pPipelines[k];
+                    pPipelines[k] = nullptr;
+                }
+            }
             return -3;
-        }
+                }
 
         pipeline->topology = 0x0004; 
         if (info.pInputAssemblyState) {
@@ -97,11 +143,10 @@ int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache
         if (info.pColorBlendState && info.pColorBlendState->attachmentCount > 0) {
             const VkPipelineColorBlendAttachmentState& blend = info.pColorBlendState->pAttachments[0];
             pipeline->blendEnable = blend.blendEnable;
-            pipeline->blendSrcFactor = 0x0302; 
-            pipeline->blendDstFactor = 0x0303; 
-            pipeline->blendEquation = 0x8006; 
+            pipeline->blendSrcFactor = MapBlendFactor(blend.srcColorBlendFactor); 
+            pipeline->blendDstFactor = MapBlendFactor(blend.dstColorBlendFactor); 
+            pipeline->blendEquation = MapBlendOp(blend.colorBlendOp); 
         } else { pipeline->blendEnable = 0; }
-
         pPipelines[i] = pipeline;
     }
     return 0;
