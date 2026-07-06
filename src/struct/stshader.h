@@ -16,7 +16,7 @@ struct VkShaderModuleCreateInfo {
 };
 
 struct VkPipeline_T {
-    int32_t program;
+    uint32_t program;
     int32_t bindPoint;
     int32_t topology;
     int32_t depthTestEnable;
