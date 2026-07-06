@@ -14,12 +14,12 @@ std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
     std::unordered_map<uint32_t, std::string> tm, expr;
     std::unordered_map<uint32_t, uint32_t> loc, bind, blt;
     std::unordered_map<uint32_t, std::string> blocks;
-    std::unordered_map<uint32_t, std::vector<std::string>> phi_defs;
+    std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, std::string>>> phi_defs;
     #define APPLY_PHI \
     if (phi_defs.count(cur_label)) { \
         for (auto& p : phi_defs[cur_label]) cur_blk += "        " + tm[p.first] + " _phi_" + TSTR(p.first) + " = " + p.second + ";\n"; \
         for (auto& p : phi_defs[cur_label]) cur_blk += "        v_" + TSTR(p.first) + " = _phi_" + TSTR(p.first) + ";\n"; \
-    }
+}
     
     std::string head = "#version 310 es\nprecision highp float;\nprecision highp int;\n\n";
     std::string vars = "";
