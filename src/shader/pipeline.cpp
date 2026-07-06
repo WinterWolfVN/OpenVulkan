@@ -13,9 +13,11 @@ int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache
         VkPipeline pipeline = new VkPipeline_T();
         
         pipeline->bindPoint = 0;
-        pipeline->program = static_cast<int32_t>(glCreateProgram());
+        pipeline->program = glCreateProgram();
 
         std::vector<GLuint> shaders;
+        bool compileFailed = false;
+
         for (int32_t j = 0; j < info.stageCount; ++j) {
             GLenum glStage = 0;
             if (info.pStages[j].stage == 0x00000001) glStage = GL_VERTEX_SHADER;
@@ -26,14 +28,39 @@ int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache
             const GLchar* source = static_cast<const GLchar*>(info.pStages[j].module->code);
             glShaderSource(shader, 1, &source, nullptr);
             glCompileShader(shader);
-            glAttachShader(static_cast<GLuint>(pipeline->program), shader);
+
+            GLint compiled = 0;
+            glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+            if (!compiled) {
+                glDeleteShader(shader);
+                compileFailed = true;
+                break;
+            }
+
+            glAttachShader(pipeline->program, shader);
             shaders.push_back(shader);
         }
 
-        glLinkProgram(static_cast<GLuint>(pipeline->program));
+        if (compileFailed) {
+            for (GLuint s : shaders) glDeleteShader(s);
+            glDeleteProgram(pipeline->program);
+            delete pipeline;
+            return -3;
+        }
 
-        for (GLuint shader : shaders) {
-            glDeleteShader(shader);
+        glLinkProgram(pipeline->program);
+
+        GLint linked = 0;
+        glGetProgramiv(pipeline->program, GL_LINK_STATUS, &linked);
+
+        for (GLuint s : shaders) {
+            glDeleteShader(s);
+        }
+
+        if (!linked) {
+            glDeleteProgram(pipeline->program);
+            delete pipeline;
+            return -3;
         }
 
         pipeline->topology = 0x0004; 
@@ -51,11 +78,8 @@ int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache
             if (info.pRasterizationState->cullMode == 1) pipeline->cullFace = 0x0404;
             else if (info.pRasterizationState->cullMode == 2) pipeline->cullFace = 0x0405;
             else if (info.pRasterizationState->cullMode == 3) pipeline->cullFace = 0x0408;
-
             pipeline->frontFace = (info.pRasterizationState->frontFace == 0) ? 0x0901 : 0x0900;
-        } else {
-            pipeline->cullModeEnable = 0;
-        }
+        } else { pipeline->cullModeEnable = 0; }
 
         if (info.pDepthStencilState) {
             pipeline->depthTestEnable = info.pDepthStencilState->depthTestEnable;
@@ -68,9 +92,7 @@ int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache
             else if (vkDepthOp == 5) pipeline->depthCompareOp = 0x0205;
             else if (vkDepthOp == 6) pipeline->depthCompareOp = 0x0206;
             else if (vkDepthOp == 7) pipeline->depthCompareOp = 0x0207;
-        } else {
-            pipeline->depthTestEnable = 0;
-        }
+        } else { pipeline->depthTestEnable = 0; }
 
         if (info.pColorBlendState && info.pColorBlendState->attachmentCount > 0) {
             const VkPipelineColorBlendAttachmentState& blend = info.pColorBlendState->pAttachments[0];
@@ -78,13 +100,10 @@ int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache
             pipeline->blendSrcFactor = 0x0302; 
             pipeline->blendDstFactor = 0x0303; 
             pipeline->blendEquation = 0x8006; 
-        } else {
-            pipeline->blendEnable = 0;
-        }
+        } else { pipeline->blendEnable = 0; }
 
         pPipelines[i] = pipeline;
     }
-
     return 0;
 }
 
@@ -94,30 +113,46 @@ int32_t vkCreateComputePipelines(VkDevice device, VkPipelineCache pipelineCache,
     for (int32_t i = 0; i < createInfoCount; ++i) {
         VkPipeline pipeline = new VkPipeline_T();
         pipeline->bindPoint = 1;
-        pipeline->program = static_cast<int32_t>(glCreateProgram());
+        pipeline->program = glCreateProgram();
 
         GLuint shader = glCreateShader(0x91B9);
         const GLchar* source = static_cast<const GLchar*>(pCreateInfos[i].stage.module->code);
         glShaderSource(shader, 1, &source, nullptr);
         glCompileShader(shader);
         
-        glAttachShader(static_cast<GLuint>(pipeline->program), shader);
-        glLinkProgram(static_cast<GLuint>(pipeline->program));
+        GLint compiled = 0;
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+        if (!compiled) {
+            glDeleteShader(shader);
+            glDeleteProgram(pipeline->program);
+            delete pipeline;
+            return -3;
+        }
+
+        glAttachShader(pipeline->program, shader);
+        glLinkProgram(pipeline->program);
+        
+        GLint linked = 0;
+        glGetProgramiv(pipeline->program, GL_LINK_STATUS, &linked);
+        
         glDeleteShader(shader);
+
+        if (!linked) {
+            glDeleteProgram(pipeline->program);
+            delete pipeline;
+            return -3;
+        }
 
         pPipelines[i] = pipeline;
     }
-
     return 0;
 }
 
 void vkDestroyPipeline(VkDevice device, VkPipeline pipeline, const void* pAllocator) {
     if (pipeline) {
-        if (pipeline->program != 0) {
-            glDeleteProgram(static_cast<GLuint>(pipeline->program));
-        }
+        if (pipeline->program != 0) glDeleteProgram(pipeline->program);
         delete pipeline;
     }
 }
 
-}
+}        
