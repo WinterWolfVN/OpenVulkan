@@ -15,6 +15,21 @@ struct VkShaderModuleCreateInfo {
     const uint32_t* pCode;
 };
 
+struct VkPipeline_T {
+    int32_t program;
+    int32_t bindPoint;
+    int32_t topology;
+    int32_t depthTestEnable;
+    int32_t depthCompareOp;
+    int32_t cullModeEnable;
+    int32_t cullFace;
+    int32_t frontFace;
+    int32_t blendEnable;
+    int32_t blendSrcFactor;
+    int32_t blendDstFactor;
+    int32_t blendEquation;
+};
+
 typedef struct VkPipelineCache_T* VkPipelineCache;
 
 struct VkPipelineShaderStageCreateInfo {
