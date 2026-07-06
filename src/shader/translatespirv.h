@@ -86,7 +86,7 @@ std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                 cur_blk = "    case " + TSTR(cur_label) + ":\n";
                 break;
 
-            case SpvOpLoad: cur_blk += tm[spv[i+1]] + " v_" + TSTR(spv[i+2]) + " = " + (expr.count(spv[i+3]) ? expr[spv[i+3]] : ("v_" + TSTR(spv[i+3]))) + ";\n"+expr.count(spv[i+3])?expr[spv[i+3]]:("v_"+TSTR(spv[i+3]))+";\n"; break;
+            case SpvOpLoad: cur_blk += tm[spv[i+1]] + " v_" + TSTR(spv[i+2]) + " = " + (expr.count(spv[i+3]) ? expr[spv[i+3]] : ("v_" + TSTR(spv[i+3]))) + ";\n"; break;
             case SpvOpStore: cur_blk += (expr.count(spv[i+1])?expr[spv[i+1]]:("v_"+TSTR(spv[i+1])))+" = v_"+TSTR(spv[i+2])+";\n"; break;
             
             case SpvOpImageSampleImplicitLod: case SpvOpImageSampleExplicitLod:
