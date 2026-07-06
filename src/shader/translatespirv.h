@@ -48,8 +48,7 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
             case SpvOpBranch: 
                 APPLY_PHI 
                 cur_blk += "        _state = " + TSTR(spv[i+1]) + "; break;\n"; 
-                break;
-                
+                break;                
             case SpvOpBranchConditional: 
                 APPLY_PHI 
                 cur_blk += "        if(v_"+TSTR(spv[i+1])+") _state = "+TSTR(spv[i+2])+"; else _state = "+TSTR(spv[i+3])+"; break;\n"; 
@@ -121,13 +120,9 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
             OPF(SpvOpImageFetch, "texelFetch")
             OPF1(SpvOpImageQuerySize, "textureSize")
             
-            case SpvOpImageSampleDrefImplicitLod:
-                cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = texture(v_"+TSTR(spv[i+3])+", vec3(v_"+TSTR(spv[i+4])+"));\n"; 
-                break;
+            case SpvOpImageSampleDrefImplicitLod: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = texture(v_"+TSTR(spv[i+3])+", vec3(v_"+TSTR(spv[i+4])+"));\n"; break;
             case SpvOpImageSampleExplicitLod:
-            case SpvOpImageSampleImplicitLod:
-                cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = texture(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+");\n"; 
-                break;
+            case SpvOpImageSampleImplicitLod: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = texture(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+");\n"; break;
                 
             OP2(SpvOpIMul, "*")
             OP2(SpvOpINotEqual, "!=")
@@ -144,9 +139,7 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                 cur_blk = "    case " + TSTR(cur_label) + ":\n";
                 break;
                 
-            case SpvOpLoad: 
-                cur_blk += tm[spv[i+1]] + " v_" + TSTR(spv[i+2]) + " = " + (expr.count(spv[i+3]) ? expr[spv[i+3]] : ("v_" + TSTR(spv[i+3]))) + ";\n"; 
-                break;
+            case SpvOpLoad: cur_blk += tm[spv[i+1]] + " v_" + TSTR(spv[i+2]) + " = " + (expr.count(spv[i+3]) ? expr[spv[i+3]] : ("v_" + TSTR(spv[i+3]))) + ";\n"; break;
                 
             OP2(SpvOpLogicalAnd, "&&")
             OP1(SpvOpLogicalNot, "!")
@@ -174,9 +167,7 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
             }
             
             case SpvOpReturn:
-            case SpvOpReturnValue:
-                cur_blk += "        _state = 0; break;\n"; 
-                break;
+            case SpvOpReturnValue: cur_blk += "        _state = 0; break;\n"; break;
                 
             OP2(SpvOpSDiv, "/")
             
@@ -200,16 +191,12 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
             OP2(SpvOpSMod, "%")
             OP1(SpvOpSNegate, "-")
             
-            case SpvOpStore: 
-                cur_blk += (expr.count(spv[i+1])?expr[spv[i+1]]:("v_"+TSTR(spv[i+1])))+" = v_"+TSTR(spv[i+2])+";\n"; 
-                break;
+            case SpvOpStore: cur_blk += (expr.count(spv[i+1])?expr[spv[i+1]]:("v_"+TSTR(spv[i+1])))+" = v_"+TSTR(spv[i+2])+";\n"; break;
                 
             case SpvOpTypeBool: tm[spv[i+1]] = "bool"; break;
             case SpvOpTypeFloat: tm[spv[i+1]] = "float"; break;
             case SpvOpTypeImage: 
-            case SpvOpTypeSampledImage: 
-                tm[spv[i+1]] = "sampler2D"; 
-                break;
+            case SpvOpTypeSampledImage: tm[spv[i+1]] = "sampler2D"; break;
             case SpvOpTypeInt: tm[spv[i+1]] = (spv[i+3] == 1) ? "int" : "uint"; break;
             case SpvOpTypeMatrix: tm[spv[i+1]] = "mat"+TSTR(spv[i+3]); break;
             case SpvOpTypePointer: tm[spv[i+1]] = tm[spv[i+3]]; break;
@@ -240,9 +227,7 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                 break;
             }
             
-            case SpvOpVectorShuffle:
-                expr[spv[i+2]] = tm[spv[i+1]] + "(v_" + TSTR(spv[i+3]) + ", v_" + TSTR(spv[i+4]) + ")";
-                break;
+            case SpvOpVectorShuffle: expr[spv[i+2]] = tm[spv[i+1]] + "(v_" + TSTR(spv[i+3]) + ", v_" + TSTR(spv[i+4]) + ")" break;
                 
             OP2(SpvOpVectorTimesMatrix, "*")
             OP2(SpvOpVectorTimesScalar, "*")
@@ -252,10 +237,8 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
         i += len;
     }
     if (cur_label != 0) blocks[cur_label] = cur_blk;
-
     std::string main_func = "void main() {\n    int _state = " + TSTR(first_label) + ";\n" + vars + "    while(_state != 0) {\n        switch(_state) {\n";
     for (auto& b : blocks) main_func += b.second;
     main_func += "        }\n    }\n}\n";
-
     return head + main_func;
 } 
