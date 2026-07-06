@@ -39,6 +39,10 @@ struct VkImageView_T {
     VkImage image;
     int32_t viewType;
     int32_t format;
+    int32_t baseMipLevel;
+    int32_t levelCount;
+    int32_t baseArrayLayer;
+    int32_t layerCount;
 };
 typedef struct VkImageView_T* VkImageView;
 
