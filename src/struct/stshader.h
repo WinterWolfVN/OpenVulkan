@@ -29,6 +29,7 @@ struct VkPipeline_T {
     int32_t blendDstFactor;
     int32_t blendEquation;
 };
+typedef struct VkPipeline_T* VkPipeline;
 
 typedef struct VkPipelineCache_T* VkPipelineCache;
 
