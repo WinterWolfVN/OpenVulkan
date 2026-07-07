@@ -17,28 +17,24 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
     std::unordered_map<uint32_t, std::string> tm, expr;
     std::unordered_map<uint32_t, uint32_t> loc, bind, blt;
     std::unordered_map<uint32_t, std::string> blocks;
-    std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, std::string>>> phi_defs;
-    
+    std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, std::string>>> phi_defs;    
     #define APPLY_PHI \
     if (phi_defs.count(cur_label)) { \
         for (auto& p : phi_defs[cur_label]) cur_blk += "        " + tm[p.first] + " _phi_" + TSTR(p.first) + " = " + p.second + ";\n"; \
         for (auto& p : phi_defs[cur_label]) cur_blk += "        v_" + TSTR(p.first) + " = _phi_" + TSTR(p.first) + ";\n"; \
-    }
-    
+    }    
     std::string head = "#version 310 es\nprecision highp float;\nprecision highp int;\n\n";
     std::string vars = "";
     std::string cur_blk = "";
     uint32_t cur_label = 0;
     uint32_t first_label = 0;
     uint32_t exec_model = 0;
-
     size_t i = 5;
     while (i < size) {
         uint16_t op = spv[i] & 0xFFFF;
         uint16_t len = spv[i] >> 16;
 
-        switch (op) {
-            
+        switch (op) {            
             OPF1(SpvOpAll, "all")
             OPF1(SpvOpAny, "any")
             OPF1(SpvOpArrayLength, "length")
@@ -128,7 +124,6 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
             OP2(SpvOpUMod, "%")
             OP2(SpvOpVectorTimesMatrix, "*")
             OP2(SpvOpVectorTimesScalar, "*")
-
             
             case SpvOpAccessChain: {
                 std::string res = expr.count(spv[i+3]) ? expr[spv[i+3]] : "v_"+TSTR(spv[i+3]);
@@ -136,16 +131,10 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                 expr[spv[i+2]] = res;
                 break;
             }
-            case SpvOpAtomicCompareExchange: 
-                cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = atomicCompSwap(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+7])+", v_"+TSTR(spv[i+8])+");\n"; 
-                break;
-            case SpvOpBitFieldInsert: 
-                cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = bitfieldInsert(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+", v_"+TSTR(spv[i+5])+", v_"+TSTR(spv[i+6])+");\n"; 
-                break;
+            case SpvOpAtomicCompareExchange: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = atomicCompSwap(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+7])+", v_"+TSTR(spv[i+8])+");\n"; break;
+            case SpvOpBitFieldInsert: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = bitfieldInsert(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+", v_"+TSTR(spv[i+5])+", v_"+TSTR(spv[i+6])+");\n"; break;
             case SpvOpBitFieldSExtract:
-            case SpvOpBitFieldUExtract: 
-                cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = bitfieldExtract(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+", v_"+TSTR(spv[i+5])+");\n"; 
-                break;
+            case SpvOpBitFieldUExtract: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = bitfieldExtract(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+", v_"+TSTR(spv[i+5])+");\n"; break;
             case SpvOpBranch: 
                 APPLY_PHI 
                 cur_blk += "        _state = " + TSTR(spv[i+1]) + "; break;\n"; 
@@ -179,7 +168,47 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                 if (spv[i+2] == SpvDecorationLocation) loc[spv[i+1]] = spv[i+3];
                 else if (spv[i+2] == SpvDecorationBinding) bind[spv[i+1]] = spv[i+3];
                 else if (spv[i+2] == SpvDecorationBuiltIn) blt[spv[i+1]] = spv[i+3];
+                break;                        
+            case SpvOpExtInst: {
+                uint32_t ext_op = spv[i+4];
+                std::string fn = "unknown_ext_func";
+                switch(ext_op) {
+                    case 1: fn = "round"; break;
+                    case 3: fn = "trunc"; break;
+                    case 4: case 5: fn = "abs"; break;
+                    case 6: case 7: fn = "sign"; break;
+                    case 8: fn = "floor"; break;
+                    case 9: fn = "ceil"; break;
+                    case 10: fn = "fract"; break;
+                    case 11: fn = "radians"; break;
+                    case 12: fn = "degrees"; break;
+                    case 13: fn = "sin"; break;
+                    case 14: fn = "cos"; break;
+                    case 15: fn = "tan"; break;
+                    case 16: fn = "asin"; break;
+                    case 17: fn = "acos"; break;
+                    case 18: fn = "atan"; break;
+                    case 26: fn = "pow"; break;
+                    case 27: fn = "exp"; break;
+                    case 28: fn = "log"; break;
+                    case 29: fn = "exp2"; break;
+                    case 30: fn = "log2"; break;
+                    case 31: fn = "sqrt"; break;
+                    case 32: fn = "inversesqrt"; break;
+                    case 41: case 42: case 43: fn = "min"; break;
+                    case 44: case 45: case 46: fn = "max"; break;
+                    case 47: case 48: case 49: fn = "clamp"; break;
+                    case 71: case 72: fn = "mix"; break;
+                    case 73: fn = "step"; break;
+                    case 74: fn = "smoothstep"; break;
+                }                                
+                std::string args = "";
+                for(size_t j = 5; j < len; ++j) {
+                    args += (j == 5 ? "" : ", ") + (expr.count(spv[i+j]) ? expr[spv[i+j]] : "v_" + TSTR(spv[i+j]));
+                }                            
+                cur_blk += tm[spv[i+1]] + " v_" + TSTR(spv[i+2]) + " = " + fn + "(" + args + ");\n";
                 break;
+                }
             case SpvOpEmitVertex: cur_blk += "        EmitVertex();\n"; break;
             case SpvOpEndPrimitive: cur_blk += "        EndPrimitive();\n"; break;
             case SpvOpEntryPoint: exec_model = spv[i+1]; break;
@@ -188,29 +217,17 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                     head += "layout(local_size_x="+TSTR(spv[i+3])+", local_size_y="+TSTR(spv[i+4])+", local_size_z="+TSTR(spv[i+5])+") in;\n";
                 break;
             case SpvOpImageDrefGather:
-            case SpvOpImageGather: 
-                cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = textureGather(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+");\n"; 
-                break;
-            case SpvOpImageRead: 
-                cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = imageLoad(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+");\n"; 
-                break;
+            case SpvOpImageGather: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = textureGather(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+");\n"; break;
+            case SpvOpImageRead: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = imageLoad(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+");\n"; break;
             case SpvOpImageSampleDrefExplicitLod:
-            case SpvOpImageSampleDrefImplicitLod: 
-                cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = texture(v_"+TSTR(spv[i+3])+", vec3(v_"+TSTR(spv[i+4])+"));\n"; 
-                break;
+            case SpvOpImageSampleDrefImplicitLod: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = texture(v_"+TSTR(spv[i+3])+", vec3(v_"+TSTR(spv[i+4])+"));\n"; break;
             case SpvOpImageSampleExplicitLod:
-            case SpvOpImageSampleImplicitLod: 
-                cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = texture(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+");\n"; 
-                break;
+            case SpvOpImageSampleImplicitLod: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = texture(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+");\n"; break;
             case SpvOpImageSampleProjDrefExplicitLod:
             case SpvOpImageSampleProjDrefImplicitLod:
             case SpvOpImageSampleProjExplicitLod:
-            case SpvOpImageSampleProjImplicitLod: 
-                cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = textureProj(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+");\n"; 
-                break;
-            case SpvOpImageWrite: 
-                cur_blk += "        imageStore(v_"+TSTR(spv[i+1])+", v_"+TSTR(spv[i+2])+", v_"+TSTR(spv[i+3])+");\n"; 
-                break;
+            case SpvOpImageSampleProjImplicitLod: cur_blk += tm[spv[i+1]]+" v_"+TSTR(spv[i+2])+" = textureProj(v_"+TSTR(spv[i+3])+", v_"+TSTR(spv[i+4])+");\n"; break;
+            case SpvOpImageWrite: cur_blk += "        imageStore(v_"+TSTR(spv[i+1])+", v_"+TSTR(spv[i+2])+", v_"+TSTR(spv[i+3])+");\n"; break;
             case SpvOpKill: cur_blk += "        discard;\n"; break;
             case SpvOpLabel:
                 if (first_label == 0) first_label = spv[i+1];
@@ -218,9 +235,7 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                 cur_label = spv[i+1];
                 cur_blk = "    case " + TSTR(cur_label) + ":\n";
                 break;
-            case SpvOpLoad: 
-                cur_blk += tm[spv[i+1]] + " v_" + TSTR(spv[i+2]) + " = " + (expr.count(spv[i+3]) ? expr[spv[i+3]] : ("v_" + TSTR(spv[i+3]))) + ";\n"; 
-                break;
+            case SpvOpLoad: cur_blk += tm[spv[i+1]] + " v_" + TSTR(spv[i+2]) + " = " + (expr.count(spv[i+3]) ? expr[spv[i+3]] : ("v_" + TSTR(spv[i+3]))) + ";\n"; break;
             case SpvOpLoopMerge: break;
             case SpvOpMemoryBarrier: cur_blk += "        memoryBarrierShared();\n"; break;
             case SpvOpPhi: {
@@ -243,9 +258,7 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                 break;
             }
             case SpvOpSelectionMerge: break;
-            case SpvOpStore: 
-                cur_blk += (expr.count(spv[i+1])?expr[spv[i+1]]:("v_"+TSTR(spv[i+1])))+" = v_"+TSTR(spv[i+2])+";\n"; 
-                break;
+            case SpvOpStore: cur_blk += (expr.count(spv[i+1])?expr[spv[i+1]]:("v_"+TSTR(spv[i+1])))+" = v_"+TSTR(spv[i+2])+";\n"; break;
             case SpvOpSwitch: {
                 APPLY_PHI
                 cur_blk += "        switch(v_"+TSTR(spv[i+1])+") {\n";
@@ -283,9 +296,7 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                 else vars += tm[spv[i+1]]+" v_"+TSTR(id)+";\n";
                 break;
             }
-            case SpvOpVectorShuffle: 
-                expr[spv[i+2]] = tm[spv[i+1]] + "(v_" + TSTR(spv[i+3]) + ", v_" + TSTR(spv[i+4]) + ")"; 
-                break;
+            case SpvOpVectorShuffle: expr[spv[i+2]] = tm[spv[i+1]] + "(v_" + TSTR(spv[i+3]) + ", v_" + TSTR(spv[i+4]) + ")"; break;
 
             default: break;
         }
