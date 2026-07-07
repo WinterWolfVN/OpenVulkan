@@ -2,6 +2,7 @@
 #include <GLES3/gl31.h>
 #include <cstdint>
 #include <vector>
+#include <utility>
 
 extern "C" {
 
@@ -31,7 +32,6 @@ static GLbitfield GetGLBlitMask(int32_t f) {
 void vkCmdPipelineBarrier(VkCommandBuffer cmd, int32_t sm, int32_t dm, int32_t flags, int32_t mc, const void* pmb, int32_t bmc, const VkBufferMemoryBarrier* pbmb, int32_t imc, const VkImageMemoryBarrier* pimb) {
     if (!cmd) return;
     uint32_t b = 0;
-    
     if (imc > 0 && pimb) {
         for (int32_t i=0; i<imc; ++i) {
             int32_t a = pimb[i].dstAccessMask;
@@ -42,7 +42,6 @@ void vkCmdPipelineBarrier(VkCommandBuffer cmd, int32_t sm, int32_t dm, int32_t f
             if (pimb[i].image) pimb[i].image->layout = pimb[i].newLayout;
         }
     }
-
     if (bmc > 0 && pbmb) {
         for (int32_t i=0; i<bmc; ++i) {
             int32_t a = pbmb[i].dstAccessMask;
@@ -54,7 +53,6 @@ void vkCmdPipelineBarrier(VkCommandBuffer cmd, int32_t sm, int32_t dm, int32_t f
             if (a & 0x03000) b |= GL_BUFFER_UPDATE_BARRIER_BIT;
         }
     }
-    
     if (!b && (imc>0 || bmc>0)) b = GL_ALL_BARRIER_BITS; 
     if (b) cmd->commands.push_back([b](){ glMemoryBarrier(b); });
 }
@@ -62,15 +60,14 @@ void vkCmdPipelineBarrier(VkCommandBuffer cmd, int32_t sm, int32_t dm, int32_t f
 void vkCmdCopyBufferToImage(VkCommandBuffer cmd, VkBuffer sBuf, VkImage dImg, int32_t dLayout, int32_t count, const VkBufferImageCopy* pReg) {
     if (!cmd || !sBuf || !dImg || !pReg) return;
     dImg->layout = dLayout;
-    std::vector<VkBufferImageCopy> reg(pReg, pReg+count);
-    int32_t buf = sBuf->buffer, tex = dImg->texture, type = dImg->imageType, fmt = dImg->format;
+    std::vector<VkBufferImageCopy> v(pReg, pReg+count);
+    int32_t buf=sBuf->buffer, tex=dImg->texture, type=dImg->imageType, fmt=dImg->format;
     
-    cmd->commands.push_back([buf, tex, type, fmt, reg]() {
+    cmd->commands.push_back([buf, tex, type, fmt, reg = std::move(v)]() {
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buf);
         GLenum tgt = (type==2)?GL_TEXTURE_3D:(type==1?GL_TEXTURE_2D_ARRAY:GL_TEXTURE_2D);
         glBindTexture(tgt, tex);
         GLenum glF, glT; GetGLFormatAndType(fmt, glF, glT);
-
         for (const auto& r : reg) {
             glPixelStorei(GL_UNPACK_ROW_LENGTH, r.bufferRowLength);
             glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, r.bufferImageHeight);
@@ -91,22 +88,20 @@ void vkCmdCopyBufferToImage(VkCommandBuffer cmd, VkBuffer sBuf, VkImage dImg, in
 void vkCmdCopyImageToBuffer(VkCommandBuffer cmd, VkImage sImg, int32_t sLayout, VkBuffer dBuf, int32_t count, const VkBufferImageCopy* pReg) {
     if (!cmd || !sImg || !dBuf || !pReg) return;
     sImg->layout = sLayout;
-    std::vector<VkBufferImageCopy> reg(pReg, pReg+count);
-    int32_t buf = dBuf->buffer, tex = sImg->texture, type = sImg->imageType, fmt = sImg->format;
+    std::vector<VkBufferImageCopy> v(pReg, pReg+count);
+    int32_t buf=dBuf->buffer, tex=sImg->texture, type=sImg->imageType, fmt=sImg->format;
     
-    cmd->commands.push_back([buf, tex, type, fmt, reg]() {
+    cmd->commands.push_back([buf, tex, type, fmt, reg = std::move(v)]() {
         GLuint fbo; glGenFramebuffers(1, &fbo); glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, buf);
         GLenum glF, glT; GetGLFormatAndType(fmt, glF, glT);
         int32_t bpp = GetBPP(fmt);
-        
         for (const auto& r : reg) {
             int32_t lc = (type==2)?r.imageExtent.depth:r.imageSubresource.layerCount; if(lc<=0) lc=1;
             int32_t bl = (type==2)?r.imageOffset.z:r.imageSubresource.baseArrayLayer;
             int32_t rL = r.bufferRowLength>0?r.bufferRowLength:r.imageExtent.width;
             int32_t iH = r.bufferImageHeight>0?r.bufferImageHeight:r.imageExtent.height;
             glPixelStorei(GL_PACK_ROW_LENGTH, r.bufferRowLength);
-            
             for (int32_t i=0; i<lc; ++i) {
                 if (type==2||type==1) glFramebufferTextureLayer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex, r.imageSubresource.mipLevel, bl+i);
                 else glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, r.imageSubresource.mipLevel);
@@ -118,30 +113,27 @@ void vkCmdCopyImageToBuffer(VkCommandBuffer cmd, VkImage sImg, int32_t sLayout, 
     });
 }
 
-void vkCmdBlitImage(VkCommandBuffer cmd, VkImage sImg, int32_t sLayout, VkImage dImg, int32_t dLayout, int32_t count, const VkImageBlit* pReg, int32_t filter) {
+void vkCmdBlitImage(VkCommandBuffer cmd, VkImage sImg, int32_t sL, VkImage dImg, int32_t dL, int32_t count, const VkImageBlit* pReg, int32_t filter) {
     if (!cmd || !sImg || !dImg || !pReg) return;
-    sImg->layout = sLayout; dImg->layout = dLayout;
-    std::vector<VkImageBlit> reg(pReg, pReg+count);
+    sImg->layout = sL; dImg->layout = dL;
+    std::vector<VkImageBlit> v(pReg, pReg+count);
     int32_t sTex=sImg->texture, sTyp=sImg->imageType, dTex=dImg->texture, dTyp=dImg->imageType, fmt=sImg->format;
     
-    cmd->commands.push_back([sTex, sTyp, dTex, dTyp, fmt, reg, filter]() {
+    cmd->commands.push_back([sTex, sTyp, dTex, dTyp, fmt, reg = std::move(v), filter]() {
         GLuint fbo[2]; glGenFramebuffers(2, fbo);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo[0]); glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo[1]);
         GLbitfield msk = GetGLBlitMask(fmt);
         GLenum fT = (filter==0)?GL_NEAREST:GL_LINEAR;
         GLenum att = (msk&GL_COLOR_BUFFER_BIT)?GL_COLOR_ATTACHMENT0:((msk&GL_STENCIL_BUFFER_BIT)?GL_DEPTH_STENCIL_ATTACHMENT:GL_DEPTH_ATTACHMENT);
-
         for (const auto& r : reg) {
             int32_t lc = (sTyp==2)?(r.srcOffsets[1].z-r.srcOffsets[0].z):r.srcSubresource.layerCount; if(lc<=0) lc=1;
             int32_t sbl = (sTyp==2)?r.srcOffsets[0].z:r.srcSubresource.baseArrayLayer;
             int32_t dbl = (dTyp==2)?r.dstOffsets[0].z:r.dstSubresource.baseArrayLayer;
-
             for (int32_t i=0; i<lc; ++i) {
                 if (sTyp==2||sTyp==1) glFramebufferTextureLayer(GL_READ_FRAMEBUFFER, att, sTex, r.srcSubresource.mipLevel, sbl+i);
                 else glFramebufferTexture2D(GL_READ_FRAMEBUFFER, att, GL_TEXTURE_2D, sTex, r.srcSubresource.mipLevel);
                 if (dTyp==2||dTyp==1) glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, att, dTex, r.dstSubresource.mipLevel, dbl+i);
                 else glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, att, GL_TEXTURE_2D, dTex, r.dstSubresource.mipLevel);
-                
                 glBlitFramebuffer(r.srcOffsets[0].x, r.srcOffsets[0].y, r.srcOffsets[1].x, r.srcOffsets[1].y,
                                   r.dstOffsets[0].x, r.dstOffsets[0].y, r.dstOffsets[1].x, r.dstOffsets[1].y, msk, fT);
             }
