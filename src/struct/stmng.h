@@ -1,16 +1,40 @@
 #pragma once
 #include <cstdint>
 
-// [descriptor.cpp] 
+#define OVK_MAX_BINDINGS 32
+
+// [descriptor.cpp]
+
 struct VkDescriptorSetLayout_T {
     int32_t dummy;
 };
 typedef struct VkDescriptorSetLayout_T* VkDescriptorSetLayout;
 
 struct VkDescriptorPool_T {
-    int32_t dummy;
+    int64_t poolId;
+    int32_t maxSets;
+    int32_t allocatedSets;
+    int32_t maxUniformBuffers;
+    int32_t maxCombinedImages;
 };
 typedef struct VkDescriptorPool_T* VkDescriptorPool;
+
+struct VkDescriptorBinding {
+    int64_t offset;
+    int64_t size;
+    int32_t binding;
+    int32_t type;
+    int32_t bufferId;
+    int32_t textureId;
+    int32_t samplerId;
+};
+
+struct VkDescriptorSet_T {
+    int64_t setId;
+    VkDescriptorBinding bindings[OVK_MAX_BINDINGS];
+    int32_t bindingCount;
+};
+typedef struct VkDescriptorSet_T* VkDescriptorSet;
 
 struct VkDescriptorBufferInfo {
     VkBuffer buffer;
@@ -25,49 +49,44 @@ struct VkDescriptorImageInfo {
 };
 
 struct VkWriteDescriptorSet {
-    int32_t sType;
     const void* pNext;
     VkDescriptorSet dstSet;
+    const VkDescriptorImageInfo* pImageInfo;
+    const VkDescriptorBufferInfo* pBufferInfo;
+    const void* pTexelBufferView;
+    int32_t sType;
     int32_t dstBinding;
     int32_t dstArrayElement;
     int32_t descriptorCount;
     int32_t descriptorType;
-    const VkDescriptorImageInfo* pImageInfo;
-    const VkDescriptorBufferInfo* pBufferInfo;
-    const void* pTexelBufferView;
 };
 
 struct VkDescriptorSetLayoutCreateInfo {
-    int32_t sType;
     const void* pNext;
+    const void* pBindings;
+    int32_t sType;
     int32_t flags;
     int32_t bindingCount;
-    const void* pBindings;
+};
+
+struct VkDescriptorPoolSize {
+    int32_t type;
+    int32_t descriptorCount;
 };
 
 struct VkDescriptorPoolCreateInfo {
-    int32_t sType;
     const void* pNext;
+    const VkDescriptorPoolSize* pPoolSizes;
+    int32_t sType;
     int32_t flags;
     int32_t maxSets;
     int32_t poolSizeCount;
-    const void* pPoolSizes;
 };
 
 struct VkDescriptorSetAllocateInfo {
-    int32_t sType;
     const void* pNext;
     VkDescriptorPool descriptorPool;
-    int32_t descriptorSetCount;
     const VkDescriptorSetLayout* pSetLayouts;
-};
-
-struct VkDescriptorBinding {
-    int32_t binding;
-    int32_t type;
-    int32_t bufferId;
-    int64_t offset;
-    int64_t size;
-    int32_t textureId;
-    int32_t samplerId;
+    int32_t sType;
+    int32_t descriptorSetCount;
 };
