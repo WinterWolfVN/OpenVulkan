@@ -1,10 +1,9 @@
 #pragma once
 #include <cstdint>
 
-#define OVK_MAX_BINDINGS 32
+#define MAX_BINDINGS 32
 
 // [descriptor.cpp]
-
 struct VkDescriptorSetLayout_T {
     int32_t dummy;
 };
@@ -31,7 +30,7 @@ struct VkDescriptorBinding {
 
 struct VkDescriptorSet_T {
     int64_t setId;
-    VkDescriptorBinding bindings[OVK_MAX_BINDINGS];
+    VkDescriptorBinding bindings[MAX_BINDINGS];
     int32_t bindingCount;
 };
 typedef struct VkDescriptorSet_T* VkDescriptorSet;
