@@ -105,7 +105,7 @@ void vkUpdateDescriptorSets(VkDevice device, uint32_t descriptorWriteCount, cons
             if (foundIdx != -1) {
                 set->bindings[foundIdx] = b;
             } 
-            else if (set->bindingCount < OVK_MAX_BINDINGS) {
+            else if (set->bindingCount < MAX_BINDINGS) {
                 set->bindings[set->bindingCount] = b;
                 set->bindingCount++;
             }
