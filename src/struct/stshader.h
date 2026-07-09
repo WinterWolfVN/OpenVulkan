@@ -8,14 +8,15 @@ struct VkShaderModule_T {
 typedef struct VkShaderModule_T* VkShaderModule;
 
 struct VkShaderModuleCreateInfo {
-    int32_t sType;
     const void* pNext;
+    const uint32_t* pCode;    
+    int64_t codeSize;    
+    int32_t sType;
     int32_t flags;
-    int64_t codeSize;
-    const uint32_t* pCode;
 };
 
 struct VkPipeline_T {
+    VkPipelineLayout layout;    
     uint32_t program;
     int32_t bindPoint;
     int32_t topology;
@@ -34,13 +35,13 @@ typedef struct VkPipeline_T* VkPipeline;
 typedef struct VkPipelineCache_T* VkPipelineCache;
 
 struct VkPipelineShaderStageCreateInfo {
-    int32_t sType;
     const void* pNext;
-    int32_t flags;
-    int32_t stage;
     VkShaderModule module;
     const char* pName;
-    const void* pSpecializationInfo;
+    const void* pSpecializationInfo;    
+    int32_t sType;
+    int32_t flags;
+    int32_t stage;
 };
 
 struct VkVertexInputBindingDescription {
@@ -57,26 +58,26 @@ struct VkVertexInputAttributeDescription {
 };
 
 struct VkPipelineVertexInputStateCreateInfo {
-    int32_t sType;
     const void* pNext;
+    const VkVertexInputBindingDescription* pVertexBindingDescriptions;
+    const VkVertexInputAttributeDescription* pVertexAttributeDescriptions;    
+    int32_t sType;
     int32_t flags;
     int32_t vertexBindingDescriptionCount;
-    const VkVertexInputBindingDescription* pVertexBindingDescriptions;
     int32_t vertexAttributeDescriptionCount;
-    const VkVertexInputAttributeDescription* pVertexAttributeDescriptions;
 };
 
 struct VkPipelineInputAssemblyStateCreateInfo {
+    const void* pNext;    
     int32_t sType;
-    const void* pNext;
     int32_t flags;
     int32_t topology;
     int32_t primitiveRestartEnable;
 };
 
 struct VkPipelineRasterizationStateCreateInfo {
-    int32_t sType;
     const void* pNext;
+    int32_t sType;
     int32_t flags;
     int32_t depthClampEnable;
     int32_t rasterizerDiscardEnable;
@@ -91,8 +92,8 @@ struct VkPipelineRasterizationStateCreateInfo {
 };
 
 struct VkPipelineDepthStencilStateCreateInfo {
+    const void* pNext;    
     int32_t sType;
-    const void* pNext;
     int32_t flags;
     int32_t depthTestEnable;
     int32_t depthWriteEnable;
@@ -117,21 +118,18 @@ struct VkPipelineColorBlendAttachmentState {
 };
 
 struct VkPipelineColorBlendStateCreateInfo {
-    int32_t sType;
     const void* pNext;
+    const VkPipelineColorBlendAttachmentState* pAttachments;    
+    int32_t sType;
     int32_t flags;
     int32_t logicOpEnable;
     int32_t logicOp;
     int32_t attachmentCount;
-    const VkPipelineColorBlendAttachmentState* pAttachments;
     float blendConstants[4];
 };
 
 struct VkGraphicsPipelineCreateInfo {
-    int32_t sType;
     const void* pNext;
-    int32_t flags;
-    int32_t stageCount;
     const VkPipelineShaderStageCreateInfo* pStages;
     const VkPipelineVertexInputStateCreateInfo* pVertexInputState;
     const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyState;
@@ -144,18 +142,21 @@ struct VkGraphicsPipelineCreateInfo {
     const void* pDynamicState;
     VkPipelineLayout layout;
     VkRenderPass renderPass;
+    VkPipeline basePipelineHandle;    
+    int32_t sType;
+    int32_t flags;
+    int32_t stageCount;
     int32_t subpass;
-    VkPipeline basePipelineHandle;
     int32_t basePipelineIndex;
 };
 
 struct VkComputePipelineCreateInfo {
-    int32_t sType;
     const void* pNext;
-    int32_t flags;
-    VkPipelineShaderStageCreateInfo stage;
     VkPipelineLayout layout;
-    VkPipeline basePipelineHandle;
+    VkPipeline basePipelineHandle;   
+    VkPipelineShaderStageCreateInfo stage;    
+    int32_t sType;
+    int32_t flags;
     int32_t basePipelineIndex;
 };
 
@@ -168,7 +169,7 @@ struct VkPushConstantRange {
 struct VkPipelineLayoutCreateInfo {
     const void* pNext;
     const VkDescriptorSetLayout* pSetLayouts;
-    const VkPushConstantRange* pPushConstantRanges;
+    const VkPushConstantRange* pPushConstantRanges;    
     int32_t sType;
     int32_t flags;
     int32_t setLayoutCount;
@@ -178,7 +179,7 @@ struct VkPipelineLayoutCreateInfo {
 struct VkPipelineLayout_T {
     int64_t layoutId;
     VkDescriptorSetLayout* setLayouts;
-    VkPushConstantRange* pushConstantRanges;
+    VkPushConstantRange* pushConstantRanges;    
     int32_t setLayoutCount;
     int32_t pushConstantRangeCount;
 };
