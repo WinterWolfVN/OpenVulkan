@@ -158,3 +158,28 @@ struct VkComputePipelineCreateInfo {
     VkPipeline basePipelineHandle;
     int32_t basePipelineIndex;
 };
+
+struct VkPushConstantRange {
+    int32_t stageFlags;
+    int32_t offset;
+    int32_t size;
+};
+
+struct VkPipelineLayoutCreateInfo {
+    const void* pNext;
+    const VkDescriptorSetLayout* pSetLayouts;
+    const VkPushConstantRange* pPushConstantRanges;
+    int32_t sType;
+    int32_t flags;
+    int32_t setLayoutCount;
+    int32_t pushConstantRangeCount;
+};
+
+struct VkPipelineLayout_T {
+    int64_t layoutId;
+    VkDescriptorSetLayout* setLayouts;
+    VkPushConstantRange* pushConstantRanges;
+    int32_t setLayoutCount;
+    int32_t pushConstantRangeCount;
+};
+typedef struct VkPipelineLayout_T* VkPipelineLayout;
