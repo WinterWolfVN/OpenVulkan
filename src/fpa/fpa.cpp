@@ -30,7 +30,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkResetCommandBuffer", (PFN_vkVoidFunction)vkResetCommandBuffer},
     {"vkResetCommandPool", (PFN_vkVoidFunction)vkResetCommandPool},
 
-    //[texture.cpp] 
+    // [texture.cpp] 
     {"vkCreateImage", (PFN_vkVoidFunction)vkCreateImage},
     {"vkDestroyImage", (PFN_vkVoidFunction)vkDestroyImage},
     {"vkCreateImageView", (PFN_vkVoidFunction)vkCreateImageView},
@@ -38,7 +38,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkCreateSampler", (PFN_vkVoidFunction)vkCreateSampler},
     {"vkDestroySampler", (PFN_vkVoidFunction)vkDestroySampler},
 
-    //[cmd_texture.cpp] 
+    // [cmd_texture.cpp] 
     {"vkCmdPipelineBarrier", (PFN_vkVoidFunction)vkCmdPipelineBarrier},
     {"vkCmdCopyBufferToImage", (PFN_vkVoidFunction)vkCmdCopyBufferToImage},
     {"vkCmdCopyImageToBuffer", (PFN_vkVoidFunction)vkCmdCopyImageToBuffer},
@@ -74,6 +74,11 @@ static const FPAEntry dispatch_table[] = {
     // [shader.cpp] 
     {"vkCreateShaderModule", (PFN_vkVoidFunction)vkCreateShaderModule},
     {"vkDestroyShaderModule", (PFN_vkVoidFunction)vkDestroyShaderModule},
+
+    // [pipeline.cpp]
+    {"vkCreateGraphicsPipelines", (PFN_vkVoidFunction)vkCreateGraphicsPipelines},
+    {"vkCreateComputePipelines", (PFN_vkVoidFunction)vkCreateComputePipelines},
+    {"vkDestroyPipeline", (PFN_vkVoidFunction)vkDestroyPipeline},
 };
 
 extern "C"
