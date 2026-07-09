@@ -2,6 +2,7 @@
 #include <GLES3/gl31.h>
 #include <cstdint>
 #include <vector>
+#include <new>
 
 static uint32_t MapBlendFactor(int32_t vkFactor) {
     switch (vkFactor) {
@@ -198,6 +199,42 @@ void vkDestroyPipeline(VkDevice device, VkPipeline pipeline, const void* pAlloca
         if (pipeline->program != 0) glDeleteProgram(pipeline->program);
         delete pipeline;
     }
+}
+
+int32_t vkCreatePipelineLayout(VkDevice d, const VkPipelineLayoutCreateInfo* ci, const void* a, VkPipelineLayout* p) {
+    if (!d || !ci || !p) return -3;
+    auto* ly = new(std::nothrow) VkPipelineLayout_T();
+    if (!ly) return -3;
+    std::memset(ly, 0, sizeof(*ly));
+    ly->layoutId = (int64_t)ly;
+    ly->setLayoutCount = ci->setLayoutCount;
+    ly->pushConstantRangeCount = ci->pushConstantRangeCount;
+
+    if (ly->setLayoutCount > 0 && ci->pSetLayouts) {
+        ly->setLayouts = new(std::nothrow) VkDescriptorSetLayout[ly->setLayoutCount];
+        if (!ly->setLayouts) { delete ly; return -3; }
+        for (int32_t i = 0; i < ly->setLayoutCount; ++i) ly->setLayouts[i] = ci->pSetLayouts[i];
+    }
+
+    if (ly->pushConstantRangeCount > 0 && ci->pPushConstantRanges) {
+        ly->pushConstantRanges = new(std::nothrow) VkPushConstantRange[ly->pushConstantRangeCount];
+        if (!ly->pushConstantRanges) {
+            if (ly->setLayouts) delete[] ly->setLayouts;
+            delete ly;
+            return -3;
+        }
+        for (int32_t i = 0; i < ly->pushConstantRangeCount; ++i) ly->pushConstantRanges[i] = ci->pPushConstantRanges[i];
+    }
+
+    *p = ly;
+    return 0;
+}
+
+void vkDestroyPipelineLayout(VkDevice d, VkPipelineLayout l, const void* a) {
+    if (!l) return;
+    if (l->setLayouts) delete[] l->setLayouts;
+    if (l->pushConstantRanges) delete[] l->pushConstantRanges;
+    delete l;
 }
 
 }        
