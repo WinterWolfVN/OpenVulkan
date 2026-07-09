@@ -1,4 +1,5 @@
 #include "../struct/stshader.h"
+#include "../struct/stmng.h"
 #include <GLES3/gl31.h>
 #include <cstdint>
 #include <vector>
