@@ -8,6 +8,30 @@
 
 extern "C" {
 
+int32_t vkBeginCommandBuffer(
+    VkCommandBuffer commandBuffer,
+    const VkCommandBufferBeginInfo* pBeginInfo)
+{
+    if (!commandBuffer)
+        return -3;
+    commandBuffer->commands.clear();
+    commandBuffer->recording = true;
+    if (pBeginInfo)
+        commandBuffer->flags = pBeginInfo->flags;
+    return 0;
+}
+
+int32 vkEndCommandBuffer(
+    VkCommandBuffer commandBuffer)
+{
+    if (!commandBuffer)
+        return -3;
+    if (!commandBuffer->recording)
+        return -3;
+    commandBuffer->recording = false;
+    return 0;
+}
+
 void vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, int32_t contents) {
     if (!commandBuffer || !pRenderPassBegin) return;    
     int32_t fbo = pRenderPassBegin->framebuffer ? pRenderPassBegin->framebuffer->fbo : 0;
