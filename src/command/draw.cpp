@@ -35,16 +35,14 @@ int32 vkEndCommandBuffer(
 void vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, int32_t contents) {
     if (!commandBuffer || !pRenderPassBegin) return;    
     int32_t fbo = pRenderPassBegin->framebuffer ? pRenderPassBegin->framebuffer->fbo : 0;
+    int32_t renderTargetHeight = pRenderPassBegin->framebuffer ? pRenderPassBegin->framebuffer->height : 0;
     VkRect2D area = pRenderPassBegin->renderArea;    
     std::vector<VkClearValue> clearValues;
     if (pRenderPassBegin->clearValueCount > 0 && pRenderPassBegin->pClearValues) {
         clearValues.assign(pRenderPassBegin->pClearValues, pRenderPassBegin->pClearValues + pRenderPassBegin->clearValueCount);
     }    
-    commandBuffer->commands.push_back([fbo, area, cvs = std::move(clearValues)]() {
-        glBindFramebuffer(GL_FRAMEBUFFER, static_cast<GLuint>(fbo));        
-        GLint vp[4];
-        glGetIntegerv(GL_VIEWPORT, vp);
-        GLint renderTargetHeight = vp[3];         
+    commandBuffer->commands.push_back([fbo, area, renderTargetHeight, cvs = std::move(clearValues)]() {
+        glBindFramebuffer(GL_FRAMEBUFFER, static_cast<GLuint>(fbo));                         
         glScissor(static_cast<GLint>(area.offset.x),
                   static_cast<GLint>(renderTargetHeight - (area.offset.y + area.extent.height)),
                   static_cast<GLsizei>(area.extent.width),
@@ -99,9 +97,7 @@ void vkCmdSetViewport(VkCommandBuffer commandBuffer, int32_t firstViewport, int3
     if (!commandBuffer || !pViewports || viewportCount <= 0) return;    
     VkViewport vp = pViewports[0];    
     commandBuffer->commands.push_back([vp]() {
-        GLint currentViewport[4];
-        glGetIntegerv(GL_VIEWPORT, currentViewport);
-        GLint renderTargetHeight = currentViewport[3];        
+        // Bug        
         glViewport(static_cast<GLint>(std::floor(vp.x)),
                    static_cast<GLint>(std::floor(renderTargetHeight - (vp.y + vp.height))),
                    static_cast<GLsizei>(std::floor(vp.width)),
@@ -114,9 +110,7 @@ void vkCmdSetScissor(VkCommandBuffer commandBuffer, int32_t firstScissor, int32_
     if (!commandBuffer || !pScissors || scissorCount <= 0) return;    
     VkRect2D sc = pScissors[0];    
     commandBuffer->commands.push_back([sc]() {
-        GLint vp[4];
-        glGetIntegerv(GL_VIEWPORT, vp);
-        GLint renderTargetHeight = vp[3];        
+        // Bug     
         glScissor(static_cast<GLint>(sc.offset.x),
                   static_cast<GLint>(renderTargetHeight - (sc.offset.y + sc.extent.height)),
                   static_cast<GLsizei>(sc.extent.width),
