@@ -8,7 +8,9 @@
 struct VkCommandBuffer_T {
     int64_t currentIndexOffset;
     int32_t currentTopology;
-    int32_t currentIndexType;    
+    int32_t currentIndexType;
+    int32_t renderTargetWidth;
+    int32_t renderTargetHeight;
     std::vector<std::function<void()>> commands;
 };
 typedef struct VkCommandBuffer_T* VkCommandBuffer;
