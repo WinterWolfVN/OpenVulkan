@@ -64,7 +64,9 @@ struct VkSubmitInfo {
 };
 
 struct VkFramebuffer_T {
-    int32_t fbo;
+    GLuint fbo;
+    int32_t width;
+    int32_t height;
 };
 typedef struct VkFramebuffer_T* VkFramebuffer;
 
