@@ -44,7 +44,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkCmdCopyImageToBuffer", (PFN_vkVoidFunction)vkCmdCopyImageToBuffer},
     {"vkCmdBlitImage", (PFN_vkVoidFunction)vkCmdBlitImage}, 
 
-    // [draw.cpp]
+    // [command.cpp]
     {"vkBeginCommandBuffer", (PFN_vkVoidFunction)vkBeginCommandBuffer},
     {"vkEndCommandBuffer", (PFN_vkVoidFunction)vkEndCommandBuffer},
     {"vkCmdBeginRenderPass", (PFN_vkVoidFunction)vkCmdBeginRenderPass},
@@ -53,16 +53,18 @@ static const FPAEntry dispatch_table[] = {
     {"vkCmdBindIndexBuffer", (PFN_vkVoidFunction)vkCmdBindIndexBuffer},
     {"vkCmdSetViewport", (PFN_vkVoidFunction)vkCmdSetViewport},
     {"vkCmdSetScissor", (PFN_vkVoidFunction)vkCmdSetScissor},
+    {"vkCmdBindPipeline", (PFN_vkVoidFunction)vkCmdBindPipeline},
+    {"vkCmdDispatch", (PFN_vkVoidFunction)vkCmdDispatch}, 
+    {"vkCmdBindDescriptorSets", (PFN_vkVoidFunction)vkCmdBindDescriptorSets},
+    {"vkQueueSubmit", (PFN_vkVoidFunction)vkQueueSubmit},   
+
+    // [draw.cpp]
     {"vkCmdDraw", (PFN_vkVoidFunction)vkCmdDraw},
     {"vkCmdDrawIndexed", (PFN_vkVoidFunction)vkCmdDrawIndexed},
     {"vkCmdDrawIndirect", (PFN_vkVoidFunction)vkCmdDrawIndirect},
     {"vkCmdDrawIndexedIndirect", (PFN_vkVoidFunction)vkCmdDrawIndexedIndirect},
-    {"vkCmdBindPipeline", (PFN_vkVoidFunction)vkCmdBindPipeline},
-    {"vkCmdDispatch", (PFN_vkVoidFunction)vkCmdDispatch}, 
-    {"vkCmdBindDescriptorSets", (PFN_vkVoidFunction)vkCmdBindDescriptorSets},
-    {"vkQueueSubmit", (PFN_vkVoidFunction)vkQueueSubmit},    
 
-    //[descriptor.cpp] 
+    // [descriptor.cpp] 
     {"vkCreateDescriptorSetLayout", (PFN_vkVoidFunction)vkCreateDescriptorSetLayout},
     {"vkDestroyDescriptorSetLayout", (PFN_vkVoidFunction)vkDestroyDescriptorSetLayout},
     {"vkCreateDescriptorPool", (PFN_vkVoidFunction)vkCreateDescriptorPool},
