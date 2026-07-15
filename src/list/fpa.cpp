@@ -39,7 +39,6 @@ static const FPAEntry dispatch_table[] = {
     {"vkDestroySampler", (PFN_vkVoidFunction)vkDestroySampler},
 
     // [cmd_texture.cpp] 
-    {"vkCmdPipelineBarrier", (PFN_vkVoidFunction)vkCmdPipelineBarrier},
     {"vkCmdCopyBufferToImage", (PFN_vkVoidFunction)vkCmdCopyBufferToImage},
     {"vkCmdCopyImageToBuffer", (PFN_vkVoidFunction)vkCmdCopyImageToBuffer},
     {"vkCmdBlitImage", (PFN_vkVoidFunction)vkCmdBlitImage}, 
@@ -48,8 +47,15 @@ static const FPAEntry dispatch_table[] = {
     {"vkBeginCommandBuffer", (PFN_vkVoidFunction)vkBeginCommandBuffer},
     {"vkEndCommandBuffer", (PFN_vkVoidFunction)vkEndCommandBuffer},
     {"vkCmdBeginRenderPass", (PFN_vkVoidFunction)vkCmdBeginRenderPass},
-    {"vkCmdEndRenderPass", (PFN_vkVoidFunction)vkCmdEndRenderPass},            
-    {"vkQueueSubmit", (PFN_vkVoidFunction)vkQueueSubmit},   
+    {"vkCmdEndRenderPass", (PFN_vkVoidFunction)vkCmdEndRenderPass},
+    {"vkTrimCommandPool", (PFN_vkVoidFunction)vkTrimCommandPool},
+    {"vkCmdPipelineBarrier", (PFN_vkVoidFunction)vkCmdPipelineBarrier},
+    {"vkCmdPipelineBarrier2", (PFN_vkVoidFunction)vkCmdPipelineBarrier2},
+    {"vkCmdExecuteCommands", (PFN_vkVoidFunction)vkCmdExecuteCommands},
+    {"vkCmdBeginRendering", (PFN_vkVoidFunction)vkCmdBeginRendering},
+    {"vkCmdEndRendering", (PFN_vkVoidFuntion)vkCmdEndRendering},
+    {"vkQueueSubmit", (PFN_vkVoidFunction)vkQueueSubmit},
+    {"vkQueueSubmit2", (PFN_vkVoidFuntion)vkQueueSubmit2},
 
     // [draw.cpp]
     {"vkCmdDraw", (PFN_vkVoidFunction)vkCmdDraw},
