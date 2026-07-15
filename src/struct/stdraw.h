@@ -3,8 +3,6 @@
 #include <vector>
 #include <functional>
 
-#define MAX_BARRIERS 64
-
 struct VkViewport {
     float x;
     float y;
