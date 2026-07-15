@@ -1,8 +1,6 @@
 #pragma once
 #include "stdraw.h" 
 #include <cstdint>
-#include <vector>
-#include <functional>
 
 struct VkCommandBuffer_T {
     int64_t currentIndexOffset;
