@@ -29,34 +29,6 @@ static GLbitfield GetGLBlitMask(int32_t f) {
     return GL_COLOR_BUFFER_BIT;
 }
 
-void vkCmdPipelineBarrier(VkCommandBuffer cmd, int32_t sm, int32_t dm, int32_t flags, int32_t mc, const void* pmb, int32_t bmc, const VkBufferMemoryBarrier* pbmb, int32_t imc, const VkImageMemoryBarrier* pimb) {
-    if (!cmd) return;
-    uint32_t b = 0;
-    if (imc > 0 && pimb) {
-        for (int32_t i=0; i<imc; ++i) {
-            int32_t a = pimb[i].dstAccessMask;
-            if (a & 0x00020) b |= GL_TEXTURE_FETCH_BARRIER_BIT;
-            if (a & 0x00040) b |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
-            if (a & 0x03000) b |= GL_PIXEL_BUFFER_BARRIER_BIT;
-            if (a & 0x00300) b |= GL_FRAMEBUFFER_BARRIER_BIT;
-            if (pimb[i].image) pimb[i].image->layout = pimb[i].newLayout;
-        }
-    }
-    if (bmc > 0 && pbmb) {
-        for (int32_t i=0; i<bmc; ++i) {
-            int32_t a = pbmb[i].dstAccessMask;
-            if (a & 0x00001) b |= GL_COMMAND_BARRIER_BIT;
-            if (a & 0x00002) b |= GL_ELEMENT_ARRAY_BARRIER_BIT;
-            if (a & 0x00004) b |= GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
-            if (a & 0x00008) b |= GL_UNIFORM_BARRIER_BIT;
-            if (a & 0x00060) b |= GL_SHADER_STORAGE_BARRIER_BIT;
-            if (a & 0x03000) b |= GL_BUFFER_UPDATE_BARRIER_BIT;
-        }
-    }
-    if (!b && (imc>0 || bmc>0)) b = GL_ALL_BARRIER_BITS; 
-    if (b) cmd->commands.push_back([b](){ glMemoryBarrier(b); });
-}
-
 void vkCmdCopyBufferToImage(VkCommandBuffer cmd, VkBuffer sBuf, VkImage dImg, int32_t dLayout, int32_t count, const VkBufferImageCopy* pReg) {
     if (!cmd || !sBuf || !dImg || !pReg) return;
     dImg->layout = dLayout;
