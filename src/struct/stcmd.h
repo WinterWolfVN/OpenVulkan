@@ -2,6 +2,8 @@
 #include "stdraw.h" 
 #include <cstdint>
 
+#define MAX_BARRIERS 64
+
 struct VkCommandBuffer_T {
     int64_t currentIndexOffset;
     int64_t cmdId;
