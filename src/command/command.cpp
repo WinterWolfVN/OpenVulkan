@@ -66,6 +66,98 @@ void vkCmdEndRenderPass(VkCommandBuffer commandBuffer) {
     });
 }
 
+void vkTrimCommandPool(VkDevice device, VkCommandPool commandPool, int32_t flags) {
+    if (!device || !commandPool) return;
+}
+
+void vkCmdPipelineBarrier(VkCommandBuffer commandBuffer, int32_t srcStageMask, int32_t dstStageMask, int32_t dependencyFlags, int32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers, int32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers, int32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers) {
+    if (!commandBuffer) return;    
+    for (int32_t i = 0; i < memoryBarrierCount && commandBuffer->memoryBarrierCount < MAX_BARRIERS; ++i) {
+        VkMemoryBarrier2 b;
+        std::memset(&b, 0, sizeof(b));
+        b.srcStageMask = srcStageMask;
+        b.dstStageMask = dstStageMask;
+        b.srcAccessMask = pMemoryBarriers[i].srcAccessMask;
+        b.dstAccessMask = pMemoryBarriers[i].dstAccessMask;
+        commandBuffer->memoryBarriers[commandBuffer->memoryBarrierCount++] = b;
+    }    
+    for (int32_t i = 0; i < bufferMemoryBarrierCount && commandBuffer->bufferBarrierCount < MAX_BARRIERS; ++i) {
+        VkBufferMemoryBarrier2 b;
+        std::memset(&b, 0, sizeof(b));
+        b.buffer = pBufferMemoryBarriers[i].buffer;
+        b.offset = pBufferMemoryBarriers[i].offset;
+        b.size = pBufferMemoryBarriers[i].size;
+        b.srcStageMask = srcStageMask;
+        b.dstStageMask = dstStageMask;
+        b.srcAccessMask = pBufferMemoryBarriers[i].srcAccessMask;
+        b.dstAccessMask = pBufferMemoryBarriers[i].dstAccessMask;
+        b.srcQueueFamilyIndex = pBufferMemoryBarriers[i].srcQueueFamilyIndex;
+        b.dstQueueFamilyIndex = pBufferMemoryBarriers[i].dstQueueFamilyIndex;
+        commandBuffer->bufferBarriers[commandBuffer->bufferBarrierCount++] = b;
+    }    
+    for (int32_t i = 0; i < imageMemoryBarrierCount && commandBuffer->imageBarrierCount < MAX_BARRIERS; ++i) {
+        VkImageMemoryBarrier2 b;
+        std::memset(&b, 0, sizeof(b));
+        b.image = pImageMemoryBarriers[i].image;
+        b.srcStageMask = srcStageMask;
+        b.dstStageMask = dstStageMask;
+        b.srcAccessMask = pImageMemoryBarriers[i].srcAccessMask;
+        b.dstAccessMask = pImageMemoryBarriers[i].dstAccessMask;
+        b.oldLayout = pImageMemoryBarriers[i].oldLayout;
+        b.newLayout = pImageMemoryBarriers[i].newLayout;
+        b.srcQueueFamilyIndex = pImageMemoryBarriers[i].srcQueueFamilyIndex;
+        b.dstQueueFamilyIndex = pImageMemoryBarriers[i].dstQueueFamilyIndex;
+        commandBuffer->imageBarriers[commandBuffer->imageBarrierCount++] = b;
+    }
+}
+
+void vkCmdPipelineBarrier2(VkCommandBuffer commandBuffer, const VkDependencyInfo* pDependencyInfo) {
+    if (!commandBuffer || !pDependencyInfo) return;    
+    for (int32_t i = 0; i < pDependencyInfo->memoryBarrierCount && commandBuffer->memoryBarrierCount < MAX_BARRIERS; ++i) {
+        commandBuffer->memoryBarriers[commandBuffer->memoryBarrierCount++] = pDependencyInfo->pMemoryBarriers[i];
+    }    
+    for (int32_t i = 0; i < pDependencyInfo->bufferMemoryBarrierCount && commandBuffer->bufferBarrierCount < MAX_BARRIERS; ++i) {
+        commandBuffer->bufferBarriers[commandBuffer->bufferBarrierCount++] = pDependencyInfo->pBufferMemoryBarriers[i];
+    }    
+    for (int32_t i = 0; i < pDependencyInfo->imageMemoryBarrierCount && commandBuffer->imageBarrierCount < MAX_BARRIERS; ++i) {
+        commandBuffer->imageBarriers[commandBuffer->imageBarrierCount++] = pDependencyInfo->pImageMemoryBarriers[i];
+    }
+}
+
+void vkCmdExecuteCommands(VkCommandBuffer commandBuffer, int32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers) {
+    if (!commandBuffer || !pCommandBuffers) return;
+}
+
+void vkCmdBeginRendering(VkCommandBuffer commandBuffer, const VkRenderingInfo* pRenderingInfo) {
+    if (!commandBuffer || !pRenderingInfo) return;    
+    glViewport(pRenderingInfo->renderAreaX, pRenderingInfo->renderAreaY, pRenderingInfo->renderAreaWidth, pRenderingInfo->renderAreaHeight);
+    glScissor(pRenderingInfo->renderAreaX, pRenderingInfo->renderAreaY, pRenderingInfo->renderAreaWidth, pRenderingInfo->renderAreaHeight);    
+    uint32_t clearMask = 0;    
+    if (pRenderingInfo->pColorAttachments && pRenderingInfo->colorAttachmentCount > 0) {
+        for (int32_t i = 0; i < pRenderingInfo->colorAttachmentCount; ++i) {
+            if (pRenderingInfo->pColorAttachments[i].loadOp == 0) { 
+                glClearColor(pRenderingInfo->pColorAttachments[i].clearValue[0], pRenderingInfo->pColorAttachments[i].clearValue[1], pRenderingInfo->pColorAttachments[i].clearValue[2], pRenderingInfo->pColorAttachments[i].clearValue[3]);
+                clearMask |= GL_COLOR_BUFFER_BIT;
+            }
+        }
+    }    
+    if (pRenderingInfo->pDepthAttachment && pRenderingInfo->pDepthAttachment->loadOp == 0) {
+        glClearDepthf(pRenderingInfo->pDepthAttachment->clearValue[0]);
+        clearMask |= GL_DEPTH_BUFFER_BIT;
+    }    
+    if (pRenderingInfo->pStencilAttachment && pRenderingInfo->pStencilAttachment->loadOp == 0) {
+        glClearStencil((int32_t)pRenderingInfo->pStencilAttachment->clearValue[0]);
+        clearMask |= GL_STENCIL_BUFFER_BIT;
+    }    
+    if (clearMask != 0) {
+        glClear(clearMask);
+    }
+}
+
+void vkCmdEndRendering(VkCommandBuffer commandBuffer) {
+    if (!commandBuffer) return;
+}
+
 int32_t vkQueueSubmit(VkQueue queue, int32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
     if (!pSubmits || submitCount <= 0) return -3;    
     for (int32_t i = 0; i < submitCount; ++i) {
@@ -83,3 +175,22 @@ int32_t vkQueueSubmit(VkQueue queue, int32_t submitCount, const VkSubmitInfo* pS
     return 0;
 }
    } 
+
+int32_t vkQueueSubmit2(VkQueue queue, int32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence) {
+    if (!queue) return -3;    
+    if (submitCount > 0 && pSubmits) {
+        for (int32_t i = 0; i < submitCount; ++i) {
+            if (pSubmits[i].commandBufferInfoCount > 0 && pSubmits[i].pCommandBufferInfos) {
+                for (int32_t j = 0; j < pSubmits[i].commandBufferInfoCount; ++j) {
+                    VkCommandBuffer cb = pSubmits[i].pCommandBufferInfos[j].commandBuffer;
+                    if (cb) {
+                        cb->memoryBarrierCount = 0;
+                        cb->bufferBarrierCount = 0;
+                        cb->imageBarrierCount = 0;
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
