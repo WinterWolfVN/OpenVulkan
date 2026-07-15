@@ -1,10 +1,8 @@
 #include "../struct/stcmd.h"
-#include "../struct/stshader.h"
 #include <GLES3/gl31.h>
 #include <cstdint>
 #include <vector>
 #include <utility>
-#include <cmath>
 
 extern "C" {
 
@@ -65,15 +63,6 @@ void vkCmdEndRenderPass(VkCommandBuffer commandBuffer) {
     if (!commandBuffer) return;    
     commandBuffer->commands.push_back([]() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    });
-}
-
-void vkCmdDispatch(VkCommandBuffer commandBuffer, int32_t groupCountX, int32_t groupCountY, int32_t groupCountZ) {
-    if (!commandBuffer) return;    
-    commandBuffer->commands.push_back([=]() {
-        glDispatchCompute(static_cast<GLuint>(groupCountX), 
-                          static_cast<GLuint>(groupCountY), 
-                          static_cast<GLuint>(groupCountZ));
     });
 }
 
