@@ -4,7 +4,6 @@
 #include <vector>
 #include <functional>
 
-// [draw.cpp] 
 struct VkCommandBuffer_T {
     int64_t currentIndexOffset;
     int32_t currentTopology;
@@ -97,7 +96,6 @@ struct VkRenderPassBeginInfo {
     const union VkClearValue* pClearValues;
 };
 
-// [cmd_texture.cpp] 
 struct VkOffset3D {
     int32_t x;
     int32_t y;
