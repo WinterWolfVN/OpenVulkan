@@ -19,3 +19,17 @@ struct VkFence_T {
     int32_t flags;
 };
 typedef struct VkFence_T* VkFence;
+
+struct VkEventCreateInfo {
+    const void* pNext;    
+    int32_t sType;
+    int32_t flags;
+};
+
+struct VkEvent_T {
+    int64_t eventId;
+    GLsync sync;    
+    int32_t signaled;
+    int32_t flags;
+};
+typedef struct VkEvent_T* VkEvent;
