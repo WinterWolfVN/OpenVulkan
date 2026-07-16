@@ -166,6 +166,8 @@ int32_t vkQueueSubmit(VkQueue queue, int32_t submitCount, const VkSubmitInfo* pS
             if (cmd) {
                 for (const auto& command : cmd->commands) {
                     command();
+            if (!queue) return -3;    
+            if (fence) { fence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0); fence->signaled = 0; }
                 }
                 cmd->commands.clear();
             }
