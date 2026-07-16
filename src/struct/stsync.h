@@ -13,8 +13,8 @@ struct VkFenceCreateInfo {
 };
 
 struct VkFence_T {
-    void* sync;
-    int64_t fenceId;    
+    int64_t fenceId;
+    GLsync sync;    
     int32_t signaled;
     int32_t flags;
 };
