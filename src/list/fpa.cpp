@@ -101,7 +101,13 @@ static const FPAEntry dispatch_table[] = {
     {"vkDeviceWaitIdle", (PFN_vkVoidFunction)vkDeviceWaitIdle},
     {"vkCmdSetEvent2", (PFN_vkVoidFunction)vkCmdSetEvent2},
     {"vkCmdResetEvent2", (PFN_vkCmdResetEvent2)vkCmdResetEvent2},
-    {"vkCmdWaitEvents2", (PFN_vkCmdWaitEvents2)vkCmdWaitEvents2}
+    {"vkCmdWaitEvents2", (PFN_vkCmdWaitEvents2)vkCmdWaitEvents2},
+    // [sema.cpp]
+    {"vkCreateSemaphore", (PFN_vkVoidFunction)vkCreateSemaphore},
+    {"vkDestroySemaphore", (PFN_vkVoidFunction)vkDestroySemaphore},
+    {"vkGetSemaphoreCounterValue", (PFN_vkVoidFunction)vkGetSemaphoreCounterValue},
+    {"vkSignalSemaphore", (PFN_vkVoidFunction)vkSignalSemaphore},
+    {"vkWaitSemaphores", (PFN_vkVoidFunction)vkWaitSemaphores}
 };
 
 extern "C"
