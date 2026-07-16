@@ -68,7 +68,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkCmdBindIndexBuffer", (PFN_vkVoidFunction)vkCmdBindIndexBuffer}, 
     {"vkCmdBindPipeline", (PFN_vkVoidFunction)vkCmdBindPipeline},
 
-    // [dynami_state.cpp]
+    // [dynamic_state.cpp]
     {"vkCmdSetViewport", (PFN_vkVoidFunction)vkCmdSetViewport},
     {"vkCmdSetScissor", (PFN_vkVoidFunction)vkCmdSetScissor},
 
@@ -89,6 +89,13 @@ static const FPAEntry dispatch_table[] = {
     {"vkCreateGraphicsPipelines", (PFN_vkVoidFunction)vkCreateGraphicsPipelines},
     {"vkCreateComputePipelines", (PFN_vkVoidFunction)vkCreateComputePipelines},
     {"vkDestroyPipeline", (PFN_vkVoidFunction)vkDestroyPipeline},
+
+    // [sync.cpp]
+    {"vkCreateFence", (PFN_vkVoidFunction)vkCreateFence},
+    {"vkDestroyFence", (PFN_vkVoidFunction)vkDestroyFence},
+    {"vkResetFences", (PFN_vkVoidFunction)vkResetFences},
+    {"vkWaitForFences", (PFN_vkVoidFunction)vkWaitForFences},
+    {"vkGetFenceStatus", (PFN_vkVoidFunction)vkGetFenceStatus},
 };
 
 extern "C"
