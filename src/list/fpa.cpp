@@ -29,7 +29,6 @@ static const FPAEntry dispatch_table[] = {
     {"vkFreeCommandBuffers", (PFN_vkVoidFunction)vkFreeCommandBuffers},    
     {"vkResetCommandBuffer", (PFN_vkVoidFunction)vkResetCommandBuffer},
     {"vkResetCommandPool", (PFN_vkVoidFunction)vkResetCommandPool},
-
     // [texture.cpp] 
     {"vkCreateImage", (PFN_vkVoidFunction)vkCreateImage},
     {"vkDestroyImage", (PFN_vkVoidFunction)vkDestroyImage},
@@ -42,7 +41,6 @@ static const FPAEntry dispatch_table[] = {
     {"vkCmdCopyBufferToImage", (PFN_vkVoidFunction)vkCmdCopyBufferToImage},
     {"vkCmdCopyImageToBuffer", (PFN_vkVoidFunction)vkCmdCopyImageToBuffer},
     {"vkCmdBlitImage", (PFN_vkVoidFunction)vkCmdBlitImage}, 
-
     // [command.cpp]
     {"vkBeginCommandBuffer", (PFN_vkVoidFunction)vkBeginCommandBuffer},
     {"vkEndCommandBuffer", (PFN_vkVoidFunction)vkEndCommandBuffer},
@@ -56,7 +54,6 @@ static const FPAEntry dispatch_table[] = {
     {"vkCmdEndRendering", (PFN_vkVoidFuntion)vkCmdEndRendering},
     {"vkQueueSubmit", (PFN_vkVoidFunction)vkQueueSubmit},
     {"vkQueueSubmit2", (PFN_vkVoidFuntion)vkQueueSubmit2},
-
     // [draw.cpp]
     {"vkCmdDraw", (PFN_vkVoidFunction)vkCmdDraw},
     {"vkCmdDrawIndexed", (PFN_vkVoidFunction)vkCmdDrawIndexed},
@@ -67,7 +64,6 @@ static const FPAEntry dispatch_table[] = {
     {"vkCmdBindVertexBuffers", (PFN_vkVoidFunction)vkCmdBindVertexBuffers},
     {"vkCmdBindIndexBuffer", (PFN_vkVoidFunction)vkCmdBindIndexBuffer}, 
     {"vkCmdBindPipeline", (PFN_vkVoidFunction)vkCmdBindPipeline},
-
     // [dynamic_state.cpp]
     {"vkCmdSetViewport", (PFN_vkVoidFunction)vkCmdSetViewport},
     {"vkCmdSetScissor", (PFN_vkVoidFunction)vkCmdSetScissor},
@@ -84,7 +80,6 @@ static const FPAEntry dispatch_table[] = {
     // [shader.cpp] 
     {"vkCreateShaderModule", (PFN_vkVoidFunction)vkCreateShaderModule},
     {"vkDestroyShaderModule", (PFN_vkVoidFunction)vkDestroyShaderModule},
-
     // [pipeline.cpp]
     {"vkCreateGraphicsPipelines", (PFN_vkVoidFunction)vkCreateGraphicsPipelines},
     {"vkCreateComputePipelines", (PFN_vkVoidFunction)vkCreateComputePipelines},
@@ -96,6 +91,17 @@ static const FPAEntry dispatch_table[] = {
     {"vkResetFences", (PFN_vkVoidFunction)vkResetFences},
     {"vkWaitForFences", (PFN_vkVoidFunction)vkWaitForFences},
     {"vkGetFenceStatus", (PFN_vkVoidFunction)vkGetFenceStatus},
+    {"vkCreateEvent", (PFN_vkVoidFunction)vkCreateEvent},
+    {"vkCreateEvent", (PFN_vkVoidFunction)vkCreateEvent},
+    {"vkDestroyEvent", (PFN_vkVoidFunction)vkDestroyEvent},
+    {"vkSetEvent", (PFN_vkVoidFunction)vkSetEvent},
+    {"vkResetEvent", (PFN_vkVoidFunction)vkResetEvent},
+    {"vkGetEventStatus", (PFN_vkVoidFunction)vkGetEventStatus},
+    {"vkQueueWaitIdle", (PFN_vkVoidFunction)vkQueueWaitIdle},
+    {"vkDeviceWaitIdle", (PFN_vkVoidFunction)vkDeviceWaitIdle},
+    {"vkCmdSetEvent2", (PFN_vkVoidFunction)vkCmdSetEvent2},
+    {"vkCmdResetEvent2", (PFN_vkCmdResetEvent2)vkCmdResetEvent2},
+    {"vkCmdWaitEvents2", (PFN_vkCmdWaitEvents2)vkCmdWaitEvents2}
 };
 
 extern "C"
