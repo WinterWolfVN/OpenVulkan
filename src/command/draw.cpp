@@ -1,8 +1,10 @@
 #include "../struct/stdraw.h"
+#include "../struct/stcmd.h"
 #include "../struct/stshader.h"
 #include <GLES3/gl31.h>
 #include <cstdint>
 #include <vector>
+#include <functional>
 #include <utility>
 
 extern "C" {
@@ -101,19 +103,28 @@ void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, int32_t pipelineBind
             else if (b.type == 7 || b.type == 9) { 
                 glBindBufferRange(GL_SHADER_STORAGE_BUFFER, static_cast<GLuint>(b.binding), static_cast<GLuint>(b.bufferId), static_cast<GLintptr>(b.offset), static_cast<GLsizeiptr>(b.size));
             }
-            else if (b.type == 1) { 
+            else if (b.type == 1 || b.type == 2 || b.type == 10) { 
                 glActiveTexture(GL_TEXTURE0 + static_cast<GLuint>(b.binding));
-                glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(b.textureId));
+                glBindTexture(static_cast<GLenum>(b.imageTarget), static_cast<GLuint>(b.textureId));
                 if (b.samplerId != 0) {
                     glBindSampler(static_cast<GLuint>(b.binding), static_cast<GLuint>(b.samplerId));
                 }
             }
             else if (b.type == 3) { 
-                glBindImageTexture(static_cast<GLuint>(b.binding), static_cast<GLuint>(b.textureId), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+                glBindImageTexture(static_cast<GLuint>(b.binding), static_cast<GLuint>(b.textureId), 0, GL_FALSE, 0, GL_READ_WRITE, b.imageFormat ? static_cast<GLenum>(b.imageFormat) : GL_RGBA8);
+            }
+            else if (b.type == 0) {
+                if (b.samplerId != 0) {
+                    glBindSampler(static_cast<GLuint>(b.binding), static_cast<GLuint>(b.samplerId));
+                }
+            }
+            else if (b.type == 4 || b.type == 5) {
+                glActiveTexture(GL_TEXTURE0 + static_cast<GLuint>(b.binding));
+                glBindTexture(GL_TEXTURE_BUFFER, static_cast<GLuint>(b.textureId));
             }
         }
     });
-}        
+}
 
 void vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buffer, int64_t offset, int32_t indexType) {
     if (!commandBuffer || !buffer) return;    
