@@ -177,35 +177,29 @@ int32_t vkCreatePipelineCache(VkDevice d, const VkPipelineCacheCreateInfo* ci, c
     if (!cache) return -3;
     std::memset(cache, 0, sizeof(*cache));
     cache->cacheId = (int64_t)cache;
-    cache->entryCount = 0;
-    cache->flags = ci ? ci->flags : 0;    
-    if (ci && ci->pInitialData && ci->initialDataSize > 0) {
-        const VkPipelineCacheHeader* header = (const VkPipelineCacheHeader*)ci->pInitialData;
-        if (ci->initialDataSize >= sizeof(VkPipelineCacheHeader)) {
-            const uint8_t* data = (const uint8_t*)ci->pInitialData + header->headerSize;
-            uint64_t remaining = ci->initialDataSize - header->headerSize;            
-            while (remaining >= sizeof(uint64_t) * 2) {
-                uint64_t hash = *(const uint64_t*)data;
-                uint64_t size = *(const uint64_t*)(data + sizeof(uint64_t));
-                data += sizeof(uint64_t) * 2;
-                remaining -= sizeof(uint64_t) * 2;             
-                if (remaining >= size && cache->entryCount < MAX_CACHE_ENTRIES) {
-                    auto& entry = cache->entries[cache->entryCount];
-                    entry.hash = hash;
-                    entry.binarySize = size;
-                    entry.binaryData = new(std::nothrow) uint32_t[size / sizeof(uint32_t)];
-                    if (entry.binaryData) {
-                        std::memcpy(entry.binaryData, data, size);
-                        cache->entryCount++;
-                    }
-                    data += size;
-                    remaining -= size;
-                } else {
-                    break;
-                }
-            }
-        }
-    }    
+    cache->flags = ci ? ci->flags : 0;
+    if (!ci || !ci->pInitialData || ci->initialDataSize < sizeof(VkPipelineCacheHeader)) {
+        *p = cache;
+        return 0;
+    }
+    auto* hdr = (const VkPipelineCacheHeader*)ci->pInitialData;
+    const uint8_t* data = (const uint8_t*)ci->pInitialData + hdr->headerSize;
+    uint64_t remain = ci->initialDataSize - hdr->headerSize;
+    while (remain >= 16 && cache->entryCount < MAX_CACHE_ENTRIES) {
+        uint64_t hash = *(const uint64_t*)data; data += 8;
+        uint64_t size = *(const uint64_t*)data; data += 8;
+        remain -= 16;
+        if (size > remain) break;
+        auto* e = &cache->entries[cache->entryCount];
+        e->hash = hash;
+        e->binarySize = size;
+        e->binaryData = new(std::nothrow) uint32_t[(size + 3) / 4];
+        if (!e->binaryData) break;
+        std::memcpy(e->binaryData, data, size);
+        cache->entryCount++;
+        data += size;
+        remain -= size;
+    }
     *p = cache;
     return 0;
 }
