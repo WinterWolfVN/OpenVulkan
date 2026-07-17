@@ -172,29 +172,4 @@ void vkUpdateDescriptorSets(VkDevice d, int32_t dwc, const VkWriteDescriptorSet*
     }
 }
 
-void vkApplyDescriptorSet(VkDescriptorSet set) {
-    if (!set) return;
-    static uint32_t lT[16] = {0}, lS[16] = {0};
-    for (int32_t i = 0; i < set->bindingCount; ++i) {
-        auto& b = set->bindings[i];
-        int t = b.type, bd = b.binding;
-        if (t == 6 || t == 8) glBindBufferRange(GL_UNIFORM_BUFFER, bd, b.bufferId, b.offset, b.size);
-        else if (t == 7 || t == 9) glBindBufferRange(GL_SHADER_STORAGE_BUFFER, bd, b.bufferId, b.offset, b.size);
-        else if (t == 1 || t == 2 || t == 10 || t == 4 || t == 5) {
-            uint32_t tg = (t == 4 || t == 5) ? GL_TEXTURE_BUFFER : b.imageTarget;
-            if (bd < 16 && lT[bd] != b.textureId) { glActiveTexture(GL_TEXTURE0 + bd); glBindTexture(tg, b.textureId); lT[bd] = b.textureId; }
-            else if (bd >= 16) { glActiveTexture(GL_TEXTURE0 + bd); glBindTexture(tg, b.textureId); }
-            if (b.samplerId && t != 10) {
-                if (bd < 16 && lS[bd] != b.samplerId) { glBindSampler(bd, b.samplerId); lS[bd] = b.samplerId; }
-                else if (bd >= 16) glBindSampler(bd, b.samplerId);
-            }
-        } else if (t == 0) {
-            if (b.samplerId) {
-                if (bd < 16 && lS[bd] != b.samplerId) { glBindSampler(bd, b.samplerId); lS[bd] = b.samplerId; }
-                else if (bd >= 16) glBindSampler(bd, b.samplerId);
-            }
-        } else if (t == 3) glBindImageTexture(bd, b.textureId, 0, GL_FALSE, 0, GL_READ_WRITE, b.imageFormat ? b.imageFormat : GL_RGBA8);
-    }
-}
-
 }        
