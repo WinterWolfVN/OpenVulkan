@@ -107,6 +107,7 @@ void vkCmdPipelineBarrier(VkCommandBuffer commandBuffer, int32_t srcStageMask, i
         b.newLayout = pImageMemoryBarriers[i].newLayout;
         b.srcQueueFamilyIndex = pImageMemoryBarriers[i].srcQueueFamilyIndex;
         b.dstQueueFamilyIndex = pImageMemoryBarriers[i].dstQueueFamilyIndex;
+        b.subresourceRange = pImageMemoryBarriers[i].subresourceRange;
         commandBuffer->imageBarriers[commandBuffer->imageBarrierCount++] = b;
     }
 }
