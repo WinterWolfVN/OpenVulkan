@@ -7,20 +7,13 @@
 
 static uint32_t MapBlendFactor(int32_t vkFactor) {
     switch (vkFactor) {
-        case 0: return GL_ZERO;
-        case 1: return GL_ONE;
-        case 2: return GL_SRC_COLOR;
-        case 3: return GL_ONE_MINUS_SRC_COLOR;
-        case 4: return GL_DST_COLOR;
-        case 5: return GL_ONE_MINUS_DST_COLOR;
-        case 6: return GL_SRC_ALPHA;
-        case 7: return GL_ONE_MINUS_SRC_ALPHA;
-        case 8: return GL_DST_ALPHA;
-        case 9: return GL_ONE_MINUS_DST_ALPHA;
-        case 10: return GL_CONSTANT_COLOR;
-        case 11: return GL_ONE_MINUS_CONSTANT_COLOR;
-        case 12: return GL_CONSTANT_ALPHA;
-        case 13: return GL_ONE_MINUS_CONSTANT_ALPHA;
+        case 0: return GL_ZERO; case 1: return GL_ONE;
+        case 2: return GL_SRC_COLOR; case 3: return GL_ONE_MINUS_SRC_COLOR;
+        case 4: return GL_DST_COLOR; case 5: return GL_ONE_MINUS_DST_COLOR;
+        case 6: return GL_SRC_ALPHA; case 7: return GL_ONE_MINUS_SRC_ALPHA;
+        case 8: return GL_DST_ALPHA; case 9: return GL_ONE_MINUS_DST_ALPHA;
+        case 10: return GL_CONSTANT_COLOR; case 11: return GL_ONE_MINUS_CONSTANT_COLOR;
+        case 12: return GL_CONSTANT_ALPHA; case 13: return GL_ONE_MINUS_CONSTANT_ALPHA;
         case 14: return GL_SRC_ALPHA_SATURATE;
         default: return GL_ZERO;
     }
@@ -42,18 +35,16 @@ extern "C" {
 int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache, int32_t createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos, const void* pAllocator, VkPipeline* pPipelines) {
     if (!device || !pCreateInfos || !pPipelines) return -3;
     for (int32_t i = 0; i < createInfoCount; ++i) {
-        const VkGraphicsPipelineCreateInfo& info = pCreateInfos[i];
-        VkPipeline pipeline = new VkPipeline_T();       
+        const auto& info = pCreateInfos[i];
+        auto* pipeline = new(std::nothrow) VkPipeline_T();
+        if (!pipeline) return -3;
         pipeline->bindPoint = 0;
         pipeline->layout = info.layout;
         pipeline->program = glCreateProgram();
         std::vector<GLuint> shaders;
-        bool compileFailed = false;
         for (int32_t j = 0; j < info.stageCount; ++j) {
-            GLenum glStage = 0;
-            if (info.pStages[j].stage == 0x00000001) glStage = GL_VERTEX_SHADER;
-            else if (info.pStages[j].stage == 0x00000010) glStage = GL_FRAGMENT_SHADER;
-            else continue;
+            GLenum glStage = (info.pStages[j].stage == 0x00000001) ? GL_VERTEX_SHADER : (info.pStages[j].stage == 0x00000010) ? GL_FRAGMENT_SHADER : 0;
+            if (!glStage) continue;
             GLuint shader = glCreateShader(glStage);
             const GLchar* source = static_cast<const GLchar*>(info.pStages[j].module->code);
             glShaderSource(shader, 1, &source, nullptr);
@@ -62,83 +53,51 @@ int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache
             glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
             if (!compiled) {
                 glDeleteShader(shader);
-                compileFailed = true;
-                break;
+                for (GLuint s : shaders) glDeleteShader(s);
+                glDeleteProgram(pipeline->program);
+                delete pipeline;
+                for (int32_t k = 0; k < i; ++k) {
+                    if (pPipelines[k]) { glDeleteProgram(pPipelines[k]->program); delete pPipelines[k]; pPipelines[k] = nullptr; }
+                }
+                return -3;
             }
             glAttachShader(pipeline->program, shader);
             shaders.push_back(shader);
         }
-            if (compileFailed) {
-            for (GLuint s : shaders) glDeleteShader(s);
-            glDeleteProgram(pipeline->program);
-            delete pipeline;            
-            for (int32_t k = 0; k < i; ++k) {
-                if (pPipelines[k]) {
-                    glDeleteProgram(pPipelines[k]->program);
-                    delete pPipelines[k];
-                    pPipelines[k] = nullptr;
-                }
-            }
-            return -3;
-                }
         glLinkProgram(pipeline->program);
         GLint linked = 0;
         glGetProgramiv(pipeline->program, GL_LINK_STATUS, &linked);
-        for (GLuint s : shaders) {
-            glDeleteShader(s);
-        }
-            if (!linked) {
+        for (GLuint s : shaders) glDeleteShader(s);
+        if (!linked) {
             glDeleteProgram(pipeline->program);
-            delete pipeline;            
+            delete pipeline;
             for (int32_t k = 0; k < i; ++k) {
-                if (pPipelines[k]) {
-                    glDeleteProgram(pPipelines[k]->program);
-                    delete pPipelines[k];
-                    pPipelines[k] = nullptr;
-                }
+                if (pPipelines[k]) { glDeleteProgram(pPipelines[k]->program); delete pPipelines[k]; pPipelines[k] = nullptr; }
             }
             return -3;
-                }
-        pipeline->topology = 0x0004; 
-        if (info.pInputAssemblyState) {
-            int32_t vkTopo = info.pInputAssemblyState->topology;
-            if (vkTopo == 0) pipeline->topology = 0x0000;
-            else if (vkTopo == 1) pipeline->topology = 0x0001;
-            else if (vkTopo == 2) pipeline->topology = 0x0002;
-            else if (vkTopo == 3) pipeline->topology = 0x0004;
-            else if (vkTopo == 4) pipeline->topology = 0x0005;
         }
+        pipeline->topology = info.pInputAssemblyState ? (info.pInputAssemblyState->topology == 0 ? 0x0000 : info.pInputAssemblyState->topology == 1 ? 0x0001 : info.pInputAssemblyState->topology == 2 ? 0x0002 : info.pInputAssemblyState->topology == 3 ? 0x0004 : info.pInputAssemblyState->topology == 4 ? 0x0005 : 0x0004) : 0x0004;
         if (info.pRasterizationState) {
-            pipeline->cullModeEnable = (info.pRasterizationState->cullMode != 0) ? 1 : 0;
-            if (info.pRasterizationState->cullMode == 1) pipeline->cullFace = 0x0404;
-            else if (info.pRasterizationState->cullMode == 2) pipeline->cullFace = 0x0405;
-            else if (info.pRasterizationState->cullMode == 3) pipeline->cullFace = 0x0408;
-            pipeline->frontFace = (info.pRasterizationState->frontFace == 0) ? 0x0901 : 0x0900;
-        } else { pipeline->cullModeEnable = 0; }
+            pipeline->cullModeEnable = info.pRasterizationState->cullMode != 0;
+            pipeline->cullFace = info.pRasterizationState->cullMode == 1 ? 0x0404 : info.pRasterizationState->cullMode == 2 ? 0x0405 : info.pRasterizationState->cullMode == 3 ? 0x0408 : 0;
+            pipeline->frontFace = info.pRasterizationState->frontFace == 0 ? 0x0901 : 0x0900;
+        } else pipeline->cullModeEnable = 0;
         if (info.pDepthStencilState) {
             pipeline->depthTestEnable = info.pDepthStencilState->depthTestEnable;
-            int32_t vkDepthOp = info.pDepthStencilState->depthCompareOp;
-            if (vkDepthOp == 0) pipeline->depthCompareOp = 0x0200;
-            else if (vkDepthOp == 1) pipeline->depthCompareOp = 0x0201;
-            else if (vkDepthOp == 2) pipeline->depthCompareOp = 0x0202;
-            else if (vkDepthOp == 3) pipeline->depthCompareOp = 0x0203;
-            else if (vkDepthOp == 4) pipeline->depthCompareOp = 0x0204;
-            else if (vkDepthOp == 5) pipeline->depthCompareOp = 0x0205;
-            else if (vkDepthOp == 6) pipeline->depthCompareOp = 0x0206;
-            else if (vkDepthOp == 7) pipeline->depthCompareOp = 0x0207;
-        } else { pipeline->depthTestEnable = 0; }
+            pipeline->depthCompareOp = info.pDepthStencilState->depthCompareOp >= 0 && info.pDepthStencilState->depthCompareOp <= 7 ? 0x0200 + info.pDepthStencilState->depthCompareOp : 0x0207;
+        } else pipeline->depthTestEnable = 0;
         if (info.pColorBlendState && info.pColorBlendState->attachmentCount > 0) {
-            const VkPipelineColorBlendAttachmentState& blend = info.pColorBlendState->pAttachments[0];
+            const auto& blend = info.pColorBlendState->pAttachments[0];
             pipeline->blendEnable = blend.blendEnable;
-            pipeline->blendSrcFactor = MapBlendFactor(blend.srcColorBlendFactor); 
-            pipeline->blendDstFactor = MapBlendFactor(blend.dstColorBlendFactor); 
-            pipeline->blendEquation = MapBlendOp(blend.colorBlendOp); 
-        } else { pipeline->blendEnable = 0; }
+            pipeline->blendSrcFactor = MapBlendFactor(blend.srcColorBlendFactor);
+            pipeline->blendDstFactor = MapBlendFactor(blend.dstColorBlendFactor);
+            pipeline->blendEquation = MapBlendOp(blend.colorBlendOp);
+        } else pipeline->blendEnable = 0;
         pPipelines[i] = pipeline;
     }
     return 0;
 }
-
+                      
 int32_t vkCreateComputePipelines(VkDevice device, VkPipelineCache pipelineCache, int32_t createInfoCount, const VkComputePipelineCreateInfo* pCreateInfos, const void* pAllocator, VkPipeline* pPipelines) {
     if (!device || !pCreateInfos || !pPipelines) return -3;
     for (int32_t i = 0; i < createInfoCount; ++i) {
