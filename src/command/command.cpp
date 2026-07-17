@@ -131,28 +131,44 @@ void vkCmdExecuteCommands(VkCommandBuffer commandBuffer, int32_t commandBufferCo
 
 void vkCmdBeginRendering(VkCommandBuffer commandBuffer, const VkRenderingInfo* pRenderingInfo) {
     if (!commandBuffer || !pRenderingInfo) return;    
-    glViewport(pRenderingInfo->renderAreaX, pRenderingInfo->renderAreaY, pRenderingInfo->renderAreaWidth, pRenderingInfo->renderAreaHeight);
-    glScissor(pRenderingInfo->renderAreaX, pRenderingInfo->renderAreaY, pRenderingInfo->renderAreaWidth, pRenderingInfo->renderAreaHeight);    
+    int32_t x = pRenderingInfo->renderAreaX;
+    int32_t y = pRenderingInfo->renderAreaY;
+    int32_t w = pRenderingInfo->renderAreaWidth;
+    int32_t h = pRenderingInfo->renderAreaHeight;    
+    float c0 = 0, c1 = 0, c2 = 0, c3 = 0;
+    float clearDepth = 1.0f;
+    int32_t clearStencil = 0;
     uint32_t clearMask = 0;    
     if (pRenderingInfo->pColorAttachments && pRenderingInfo->colorAttachmentCount > 0) {
         for (int32_t i = 0; i < pRenderingInfo->colorAttachmentCount; ++i) {
-            if (pRenderingInfo->pColorAttachments[i].loadOp == 0) { 
-                glClearColor(pRenderingInfo->pColorAttachments[i].clearValue[0], pRenderingInfo->pColorAttachments[i].clearValue[1], pRenderingInfo->pColorAttachments[i].clearValue[2], pRenderingInfo->pColorAttachments[i].clearValue[3]);
+            if (pRenderingInfo->pColorAttachments[i].loadOp == 0) {
+                c0 = pRenderingInfo->pColorAttachments[i].clearValue[0];
+                c1 = pRenderingInfo->pColorAttachments[i].clearValue[1];
+                c2 = pRenderingInfo->pColorAttachments[i].clearValue[2];
+                c3 = pRenderingInfo->pColorAttachments[i].clearValue[3];
                 clearMask |= GL_COLOR_BUFFER_BIT;
+                break;
             }
         }
     }    
     if (pRenderingInfo->pDepthAttachment && pRenderingInfo->pDepthAttachment->loadOp == 0) {
-        glClearDepthf(pRenderingInfo->pDepthAttachment->clearValue[0]);
+        clearDepth = pRenderingInfo->pDepthAttachment->clearValue[0];
         clearMask |= GL_DEPTH_BUFFER_BIT;
     }    
     if (pRenderingInfo->pStencilAttachment && pRenderingInfo->pStencilAttachment->loadOp == 0) {
-        glClearStencil((int32_t)pRenderingInfo->pStencilAttachment->clearValue[0]);
+        clearStencil = (int32_t)pRenderingInfo->pStencilAttachment->clearValue[0];
         clearMask |= GL_STENCIL_BUFFER_BIT;
-    }    
-    if (clearMask != 0) {
-        glClear(clearMask);
-    }
+    }   
+    commandBuffer->commands.push_back([x, y, w, h, c0, c1, c2, c3, clearDepth, clearStencil, clearMask]() {
+        glViewport(x, y, w, h);
+        glScissor(x, y, w, h);
+        if (clearMask != 0) {
+            if (clearMask & GL_COLOR_BUFFER_BIT) glClearColor(c0, c1, c2, c3);
+            if (clearMask & GL_DEPTH_BUFFER_BIT) glClearDepthf(clearDepth);
+            if (clearMask & GL_STENCIL_BUFFER_BIT) glClearStencil(clearStencil);
+            glClear(clearMask);
+        }
+    });
 }
 
 void vkCmdEndRendering(VkCommandBuffer commandBuffer) {
