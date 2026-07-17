@@ -98,35 +98,36 @@ int32_t vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache
     return 0;
 }
                       
-int32_t vkCreateComputePipelines(VkDevice device, VkPipelineCache pipelineCache, int32_t createInfoCount, const VkComputePipelineCreateInfo* pCreateInfos, const void* pAllocator, VkPipeline* pPipelines) {
+int32_t vkCreateComputePipelines(VkDevice device, VkPipelineCache pipelineCache, int32_t createInfoCount,
+    const VkComputePipelineCreateInfo* pCreateInfos, const void* pAllocator, VkPipeline* pPipelines) {
     if (!device || !pCreateInfos || !pPipelines) return -3;
-    for (int32_t i = 0; i < createInfoCount; ++i) {
-        VkPipeline pipeline = new VkPipeline_T();
-        pipeline->bindPoint = 1;
-        pipeline->program = glCreateProgram();
-        GLuint shader = glCreateShader(0x91B9);
-        const GLchar* source = static_cast<const GLchar*>(pCreateInfos[i].stage.module->code);
-        glShaderSource(shader, 1, &source, nullptr);
-        glCompileShader(shader);        
-        GLint compiled = 0;
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-        if (!compiled) {
-            glDeleteShader(shader);
-            glDeleteProgram(pipeline->program);
-            delete pipeline;
+    for (int32_t i = 0; i < createInfoCount; i++) {
+        auto* p = new(std::nothrow) VkPipeline_T();
+        if (!p) return -3;
+        p->bindPoint = 1;
+        p->program = glCreateProgram();
+        GLuint s = glCreateShader(GL_COMPUTE_SHADER);
+        const GLchar* src = (const GLchar*)pCreateInfos[i].stage.module->code;
+        glShaderSource(s, 1, &src, nullptr);
+        glCompileShader(s);
+        GLint ok;
+        glGetShaderiv(s, GL_COMPILE_STATUS, &ok);
+        if (!ok) {
+            glDeleteShader(s);
+            glDeleteProgram(p->program);
+            delete p;
             return -3;
         }
-        glAttachShader(pipeline->program, shader);
-        glLinkProgram(pipeline->program);        
-        GLint linked = 0;
-        glGetProgramiv(pipeline->program, GL_LINK_STATUS, &linked);        
-        glDeleteShader(shader);
-        if (!linked) {
-            glDeleteProgram(pipeline->program);
-            delete pipeline;
+        glAttachShader(p->program, s);
+        glLinkProgram(p->program);
+        glDeleteShader(s);
+        glGetProgramiv(p->program, GL_LINK_STATUS, &ok);
+        if (!ok) {
+            glDeleteProgram(p->program);
+            delete p;
             return -3;
         }
-        pPipelines[i] = pipeline;
+        pPipelines[i] = p;
     }
     return 0;
 }
