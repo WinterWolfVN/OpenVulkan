@@ -159,19 +159,18 @@ void vkCmdEndRendering(VkCommandBuffer commandBuffer) {
 }
 
 int32_t vkQueueSubmit(VkQueue queue, int32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
-    if (!pSubmits || submitCount <= 0) return -3;    
+    if (!queue ||!pSubmits || submitCount <= 0) return -3;    
     for (int32_t i = 0; i < submitCount; ++i) {
         for (int32_t j = 0; j < pSubmits[i].commandBufferCount; ++j) {
             VkCommandBuffer cmd = pSubmits[i].pCommandBuffers[j];
             if (cmd) {
                 for (const auto& command : cmd->commands) {
-                    command();
-            if (!queue) return -3;    
-            if (fence) { fence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0); fence->signaled = 0; }
+                    command();                     
                 }
                 cmd->commands.clear();
             }
         }
+        if (fence) { fence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0); fence->signaled = 0; }
     }   
     glFlush();
     return 0;
