@@ -104,6 +104,12 @@ static const FPAEntry dispatch_table[] = {
     {"vkCreateGraphicsPipelines", (PFN_vkVoidFunction)vkCreateGraphicsPipelines},
     {"vkCreateComputePipelines", (PFN_vkVoidFunction)vkCreateComputePipelines},
     {"vkDestroyPipeline", (PFN_vkVoidFunction)vkDestroyPipeline},
+    {"vkCreatePipelineLayout", (PFN_vkVoidFunction)vkCreatePipelineLayout},
+    {"vkDestroyPipelineLayout", (PFN_vkVoidFunction)vkDestroyPipelineLayout},
+    {"vkCreatePipelineCache", (PFN_vkVoidFunction)vkCreatePipelineCache},
+    {"vkDestroyPipelineCache", (PFN_vkVoidFunction)vkDestroyPipelineCache},
+    {"vkGetPipelineCacheData", (PFN_vkVoidFunction)vkGetPipelineCacheData},
+    {"vkMergePipelineCaches", (PFN_vkVoidFunction)vkMergePipelineCaches},
 
     // [sync.cpp]
     {"vkCreateFence", (PFN_vkVoidFunction)vkCreateFence},
