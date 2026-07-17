@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+#define MAX_CACHE_ENTRIES 256
+
 struct VkShaderModule_T {
     char* code;
     int64_t codeSize;
@@ -184,3 +186,33 @@ struct VkPipelineLayout_T {
     int32_t pushConstantRangeCount;
 };
 typedef struct VkPipelineLayout_T* VkPipelineLayout;
+
+struct VkPipelineCacheHeader {
+    uint64_t headerSize;
+    uint64_t headerVersion;
+    uint64_t vendorID;
+    uint64_t deviceID;
+    uint32_t pipelineCacheUUID[4];
+};
+
+struct VkPipelineCacheEntry {
+    uint64_t hash;
+    uint32_t* binaryData;
+    uint64_t binarySize;
+};
+
+struct VkPipelineCache_T {
+    int64_t cacheId;
+    VkPipelineCacheEntry entries[MAX_CACHE_ENTRIES];    
+    int32_t entryCount;
+    int32_t flags;
+};
+typedef struct VkPipelineCache_T* VkPipelineCache;
+
+struct VkPipelineCacheCreateInfo {
+    const void* pNext;
+    const void* pInitialData;    
+    int32_t sType;
+    int32_t flags;
+    uint64_t initialDataSize;
+};
