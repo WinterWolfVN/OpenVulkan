@@ -183,7 +183,7 @@ int32_t vkCreatePipelineLayout(VkDevice d, const VkPipelineLayoutCreateInfo* ci,
     if (!d || !ci || !p) return -3;
     auto* ly = new(std::nothrow) VkPipelineLayout_T();
     if (!ly) return -3;
-    std::memset(ly, 0, sizeof(*ly));    
+    std::memset(ly, 0, sizeof(*ly));
     ly->layoutId = (int64_t)ly;
     ly->setLayoutCount = ci->setLayoutCount;
     ly->pushConstantRangeCount = ci->pushConstantRangeCount;    
@@ -207,9 +207,118 @@ int32_t vkCreatePipelineLayout(VkDevice d, const VkPipelineLayoutCreateInfo* ci,
 
 void vkDestroyPipelineLayout(VkDevice d, VkPipelineLayout l, const void* a) {
     if (!l) return;
-    if (l->setLayouts) delete[] l->setLayouts;
-    if (l->pushConstantRanges) delete[] l->pushConstantRanges;
+    delete[] l->setLayouts;
+    delete[] l->pushConstantRanges;
     delete l;
+}
+
+int32_t vkCreatePipelineCache(VkDevice d, const VkPipelineCacheCreateInfo* ci, const void* a, VkPipelineCache* p) {
+    if (!d || !p) return -3;
+    auto* cache = new(std::nothrow) VkPipelineCache_T();
+    if (!cache) return -3;
+    std::memset(cache, 0, sizeof(*cache));
+    cache->cacheId = (int64_t)cache;
+    cache->entryCount = 0;
+    cache->flags = ci ? ci->flags : 0;    
+    if (ci && ci->pInitialData && ci->initialDataSize > 0) {
+        const VkPipelineCacheHeader* header = (const VkPipelineCacheHeader*)ci->pInitialData;
+        if (ci->initialDataSize >= sizeof(VkPipelineCacheHeader)) {
+            const uint8_t* data = (const uint8_t*)ci->pInitialData + header->headerSize;
+            uint64_t remaining = ci->initialDataSize - header->headerSize;            
+            while (remaining >= sizeof(uint64_t) * 2) {
+                uint64_t hash = *(const uint64_t*)data;
+                uint64_t size = *(const uint64_t*)(data + sizeof(uint64_t));
+                data += sizeof(uint64_t) * 2;
+                remaining -= sizeof(uint64_t) * 2;             
+                if (remaining >= size && cache->entryCount < MAX_CACHE_ENTRIES) {
+                    auto& entry = cache->entries[cache->entryCount];
+                    entry.hash = hash;
+                    entry.binarySize = size;
+                    entry.binaryData = new(std::nothrow) uint32_t[size / sizeof(uint32_t)];
+                    if (entry.binaryData) {
+                        std::memcpy(entry.binaryData, data, size);
+                        cache->entryCount++;
+                    }
+                    data += size;
+                    remaining -= size;
+                } else {
+                    break;
+                }
+            }
+        }
+    }    
+    *p = cache;
+    return 0;
+}
+
+void vkDestroyPipelineCache(VkDevice d, VkPipelineCache c, const void* a) {
+    if (!c) return;
+    for (int32_t i = 0; i < c->entryCount; ++i) {
+        delete[] c->entries[i].binaryData;
+    }
+    delete c;
+}
+
+int32_t vkGetPipelineCacheData(VkDevice d, VkPipelineCache c, uint64_t* pSize, void* pData) {
+    if (!d || !c || !pSize) return -3;    
+    uint64_t totalSize = sizeof(VkPipelineCacheHeader);
+    for (int32_t i = 0; i < c->entryCount; ++i) {
+        totalSize += sizeof(uint64_t) * 2 + c->entries[i].binarySize;
+    }    
+    if (!pData) {
+        *pSize = totalSize;
+        return 0;
+    }    
+    if (*pSize < totalSize) return -3;    
+    VkPipelineCacheHeader header;
+    header.headerSize = sizeof(VkPipelineCacheHeader);
+    header.headerVersion = 1;
+    header.vendorID = 0;
+    header.deviceID = 0;
+    header.pipelineCacheUUID[0] = 0x4F564B00;
+    header.pipelineCacheUUID[1] = 0x43414348;
+    header.pipelineCacheUUID[2] = 0x45563031;
+    header.pipelineCacheUUID[3] = 0x00000000;    
+    std::memcpy(pData, &header, sizeof(header));
+    uint8_t* ptr = (uint8_t*)pData + sizeof(header);    
+    for (int32_t i = 0; i < c->entryCount; ++i) {
+        *(uint64_t*)ptr = c->entries[i].hash;
+        ptr += sizeof(uint64_t);
+        *(uint64_t*)ptr = c->entries[i].binarySize;
+        ptr += sizeof(uint64_t);
+        std::memcpy(ptr, c->entries[i].binaryData, c->entries[i].binarySize);
+        ptr += c->entries[i].binarySize;
+    }    
+    *pSize = totalSize;
+    return 0;
+}
+
+int32_t vkMergePipelineCaches(VkDevice d, VkPipelineCache dst, int32_t srcCount, const VkPipelineCache* pSrc) {
+    if (!d || !dst || !pSrc) return -3;    
+    for (int32_t i = 0; i < srcCount; ++i) {
+        VkPipelineCache src = pSrc[i];
+        if (!src) continue;        
+        for (int32_t j = 0; j < src->entryCount; ++j) {
+            bool found = false;
+            for (int32_t k = 0; k < dst->entryCount; ++k) {
+                if (dst->entries[k].hash == src->entries[j].hash) {
+                    found = true;
+                    break;
+                }
+            }            
+            if (!found && dst->entryCount < MAX_CACHE_ENTRIES) {
+                auto& entry = dst->entries[dst->entryCount];
+                entry.hash = src->entries[j].hash;
+                entry.binarySize = src->entries[j].binarySize;
+                entry.binaryData = new(std::nothrow) uint32_t[entry.binarySize / sizeof(uint32_t)];
+                if (entry.binaryData) {
+                    std::memcpy(entry.binaryData, src->entries[j].binaryData, entry.binarySize);
+                    dst->entryCount++;
+                }
+            }
+        }
+    }    
+    return 0;
 }
 
 }        
