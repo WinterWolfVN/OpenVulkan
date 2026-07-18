@@ -44,22 +44,12 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                 expr[spv[i+2]] = res;
                 break;
             }
-            case SpvOpAtomicCompareExchange: 
-                if (len >= 9) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = atomicCompSwap("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+7])+", "+GET_EXPR(spv[i+8])+");\n"; 
-                break;
-            case SpvOpBitFieldInsert: 
-                if (len >= 7) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = bitfieldInsert("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+", "+GET_EXPR(spv[i+5])+", "+GET_EXPR(spv[i+6])+");\n"; 
-                break;
+            case SpvOpAtomicCompareExchange: if (len >= 9) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = atomicCompSwap("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+7])+", "+GET_EXPR(spv[i+8])+");\n"; break;
+            case SpvOpBitFieldInsert: if (len >= 7) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = bitfieldInsert("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+", "+GET_EXPR(spv[i+5])+", "+GET_EXPR(spv[i+6])+");\n"; break;
             case SpvOpBitFieldSExtract:
-            case SpvOpBitFieldUExtract: 
-                if (len >= 6) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = bitfieldExtract("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+", "+GET_EXPR(spv[i+5])+");\n"; 
-                break;
-            case SpvOpBranch: 
-                if (len >= 2) { APPLY_PHI; cur_blk += "        _state = " + TSTR(spv[i+1]) + "; break;\n"; }
-                break;                
-            case SpvOpBranchConditional: 
-                if (len >= 4) { APPLY_PHI; cur_blk += "        if("+GET_EXPR(spv[i+1])+") _state = "+TSTR(spv[i+2])+"; else _state = "+TSTR(spv[i+3])+"; break;\n"; }
-                break;
+            case SpvOpBitFieldUExtract: if (len >= 6) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = bitfieldExtract("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+", "+GET_EXPR(spv[i+5])+");\n"; break;
+            case SpvOpBranch: if (len >= 2) { APPLY_PHI; cur_blk += "        _state = " + TSTR(spv[i+1]) + "; break;\n"; } break;                
+            case SpvOpBranchConditional: if (len >= 4) { APPLY_PHI; cur_blk += "        if("+GET_EXPR(spv[i+1])+") _state = "+TSTR(spv[i+2])+"; else _state = "+TSTR(spv[i+3])+"; break;\n"; } break;
             case SpvOpCompositeConstruct: {
                 if (len < 3) break;
                 std::string args = "";
