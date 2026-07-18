@@ -43,9 +43,7 @@ static const FPAEntry dispatch_table[] = {
     {"vkCmdBlitImage", (PFN_vkVoidFunction)vkCmdBlitImage}, 
     // [command.cpp]
     {"vkBeginCommandBuffer", (PFN_vkVoidFunction)vkBeginCommandBuffer},
-    {"vkEndCommandBuffer", (PFN_vkVoidFunction)vkEndCommandBuffer},
-    {"vkCmdBeginRenderPass", (PFN_vkVoidFunction)vkCmdBeginRenderPass},
-    {"vkCmdEndRenderPass", (PFN_vkVoidFunction)vkCmdEndRenderPass},
+    {"vkEndCommandBuffer", (PFN_vkVoidFunction)vkEndCommandBuffer},    
     {"vkTrimCommandPool", (PFN_vkVoidFunction)vkTrimCommandPool},
     {"vkCmdPipelineBarrier", (PFN_vkVoidFunction)vkCmdPipelineBarrier},
     {"vkCmdPipelineBarrier2", (PFN_vkVoidFunction)vkCmdPipelineBarrier2},
@@ -87,6 +85,12 @@ static const FPAEntry dispatch_table[] = {
     {"vkCmdSetStencilOp", (PFN_vkVoidFunction)vkCmdSetStencilOp},
     {"vkCmdSetRasterizerDiscardEnable", (PFN_vkVoidFunction)vkCmdSetRasterizerDiscardEnable},
     {"vkCmdSetPrimitiveRestartEnable", (PFN_vkVoidFunction)vkCmdSetPrimitiveRestartEnable},
+    // [renderpass.cpp]
+    {"vkCmdBeginRenderPass", (PFN_vkVoidFunction)vkCmdBeginRenderPass},
+    {"vkCmdEndRenderPass", (PFN_vkVoidFunction)vkCmdEndRenderPass},
+    {"vkCreateRenderPass",(PFN_vkVoidFunction)vkCreateRenderPass},
+    {"vkDestroyRenderPass",(PFN_vkVoidFunction)vkDestroyRenderPass},
+    {"vkGetRenderAreaGranularity",(PFN_vkVoidFunction)vkGetRenderAreaGranularity},
 
     // [descriptor.cpp] 
     {"vkCreateDescriptorSetLayout", (PFN_vkVoidFunction)vkCreateDescriptorSetLayout},
