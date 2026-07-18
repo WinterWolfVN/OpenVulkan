@@ -18,27 +18,22 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
     std::unordered_map<uint32_t, std::string> tm, expr;
     std::unordered_map<uint32_t, uint32_t> loc, bind, blt, spec_id;
     std::unordered_map<uint32_t, std::string> blocks;
-    std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, std::string>>> phi_defs;
-    
+    std::unordered_map<uint32_t, std::vector<std::pair<uint32_t, std::string>>> phi_defs;    
     std::string head = "#version 310 es\nprecision highp float;\nprecision highp int;\n\n";
     std::string vars = "";
     std::string cur_blk = "";
     uint32_t cur_label = 0;
     uint32_t first_label = 0;
     uint32_t exec_model = 0;
-
     size_t i = 5;
     while (i < size) {
         uint16_t op = spv[i] & 0xFFFF;
-        uint16_t len = spv[i] >> 16;
-        
+        uint16_t len = spv[i] >> 16;        
         if (len == 0 || i + len > size) break; 
-
         if (ProcessMathOpcodes(op, len, spv, i, cur_blk, tm, expr)) {
             i += len;
             continue;
         }
-
         switch (op) {
             case SpvOpAccessChain:
             case SpvOpInBoundsAccessChain:     
@@ -144,29 +139,17 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
             case SpvOpFunctionEnd: break;
             case SpvOpFunctionParameter: if (len >= 3) expr[spv[i+2]] = "v_" + TSTR(spv[i+2]); break;
             case SpvOpImageDrefGather:
-            case SpvOpImageGather: 
-                if (len >= 5) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = textureGather("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+");\n"; 
-                break;
-            case SpvOpImageRead: 
-                if (len >= 5) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = imageLoad("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+");\n"; 
-                break;
+            case SpvOpImageGather: if (len >= 5) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = textureGather("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+");\n"; break;
+            case SpvOpImageRead: if (len >= 5) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = imageLoad("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+");\n"; break;
             case SpvOpImageSampleDrefExplicitLod:
-            case SpvOpImageSampleDrefImplicitLod: 
-                if (len >= 5) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = texture("+GET_EXPR(spv[i+3])+", vec3("+GET_EXPR(spv[i+4])+"));\n"; 
-                break;
+            case SpvOpImageSampleDrefImplicitLod: if (len >= 5) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = texture("+GET_EXPR(spv[i+3])+", vec3("+GET_EXPR(spv[i+4])+"));\n"; break;
             case SpvOpImageSampleExplicitLod:
-            case SpvOpImageSampleImplicitLod: 
-                if (len >= 5) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = texture("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+");\n"; 
-                break;
+            case SpvOpImageSampleImplicitLod: if (len >= 5) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = texture("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+");\n"; break;
             case SpvOpImageSampleProjDrefExplicitLod:
             case SpvOpImageSampleProjDrefImplicitLod:
             case SpvOpImageSampleProjExplicitLod:
-            case SpvOpImageSampleProjImplicitLod: 
-                if (len >= 5) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = textureProj("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+");\n"; 
-                break;
-            case SpvOpImageWrite: 
-                if (len >= 4) cur_blk += "        imageStore("+GET_EXPR(spv[i+1])+", "+GET_EXPR(spv[i+2])+", "+GET_EXPR(spv[i+3])+");\n"; 
-                break;
+            case SpvOpImageSampleProjImplicitLod: if (len >= 5) cur_blk += GET_TM(spv[i+1])+" v_"+TSTR(spv[i+2])+" = textureProj("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+");\n"; break;
+            case SpvOpImageWrite: if (len >= 4) cur_blk += "        imageStore("+GET_EXPR(spv[i+1])+", "+GET_EXPR(spv[i+2])+", "+GET_EXPR(spv[i+3])+");\n"; break;
             case SpvOpKill: cur_blk += "        discard;\n"; break;
             case SpvOpLabel:
                 if (len >= 2) {
@@ -176,9 +159,7 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                     cur_blk = "    case " + TSTR(cur_label) + ":\n";
                 }
                 break;
-            case SpvOpLoad: 
-                if (len >= 4) cur_blk += GET_TM(spv[i+1]) + " v_" + TSTR(spv[i+2]) + " = " + GET_EXPR(spv[i+3]) + ";\n"; 
-                break;
+            case SpvOpLoad: if (len >= 4) cur_blk += GET_TM(spv[i+1]) + " v_" + TSTR(spv[i+2]) + " = " + GET_EXPR(spv[i+3]) + ";\n"; break;
             case SpvOpLoopMerge: break;
             case SpvOpMemoryBarrier: cur_blk += "        memoryBarrierShared();\n"; break;
             case SpvOpPhi: {
@@ -193,9 +174,9 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
             }
             case SpvOpReturn:
             case SpvOpReturnValue: cur_blk += "        _state = 0; break;\n"; break;
-            case SpvOpSelect: {
-                if (len >= 6) expr[spv[i+2]] = "(" + GET_EXPR(spv[i+3]) + " ? " + GET_EXPR(spv[i+4]) + " : " + GET_EXPR(spv[i+5]) + ")";
-                break;
+            case SpvOpSelect: { 
+                if (len >= 6) expr[spv[i+2]] = "(" + GET_EXPR(spv[i+3]) + " ? " + GET_EXPR(spv[i+4]) + " : " + GET_EXPR(spv[i+5]) + ")"; 
+                break; 
             }
             case SpvOpSelectionMerge: break;
             case SpvOpSpecConstant: {
@@ -213,9 +194,7 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
             case SpvOpSpecConstantFalse: if (len >= 3) { head += "const bool v_"+TSTR(spv[i+2])+" = false;\n"; expr[spv[i+2]]="v_"+TSTR(spv[i+2]); } break;
             case SpvOpSpecConstantComposite:
             case SpvOpSpecConstantOp: if (len >= 3) expr[spv[i+2]] = "v_" + TSTR(spv[i+2]); break;
-            case SpvOpStore: 
-                if (len >= 3) cur_blk += GET_EXPR(spv[i+1])+" = "+GET_EXPR(spv[i+2])+";\n"; 
-                break;
+            case SpvOpStore: if (len >= 3) cur_blk += GET_EXPR(spv[i+1])+" = "+GET_EXPR(spv[i+2])+";\n"; break;
             case SpvOpSwitch: {
                 if (len >= 3) {
                     APPLY_PHI;
@@ -258,9 +237,7 @@ inline std::string TranslateSpirvFull(const uint32_t* spv, size_t size) {
                 }
                 break;
             }
-            case SpvOpVectorShuffle: 
-                if (len >= 5) expr[spv[i+2]] = GET_TM(spv[i+1]) + "("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+")"; 
-                break;
+            case SpvOpVectorShuffle: if (len >= 5) expr[spv[i+2]] = GET_TM(spv[i+1]) + "("+GET_EXPR(spv[i+3])+", "+GET_EXPR(spv[i+4])+")"; break;
 
             default: 
                 break;
