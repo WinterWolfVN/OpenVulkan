@@ -3,6 +3,10 @@
 #include <vector>
 #include <functional>
 
+#define MAX_ATTACHMENTS 8
+#define MAX_SUBPASSES 8
+#define MAX_SUBPASS_DEPENDENCIES 8
+
 struct VkViewport {
     float x;
     float y;
@@ -116,3 +120,66 @@ struct VkRenderingInfo {
     int32_t viewMask;
     int32_t colorAttachmentCount;
 };
+
+struct VkAttachmentDescription {
+    int32_t flags;
+    int32_t format;
+    int32_t samples;
+    int32_t loadOp;
+    int32_t storeOp;
+    int32_t stencilLoadOp;
+    int32_t stencilStoreOp;
+    int32_t initialLayout;
+    int32_t finalLayout;
+};
+
+struct VkAttachmentReference {
+    int32_t attachment;
+    int32_t layout;
+};
+
+struct VkSubpassDescription {
+    const VkAttachmentReference* pInputAttachments;
+    const VkAttachmentReference* pColorAttachments;
+    const VkAttachmentReference* pResolveAttachments;
+    const VkAttachmentReference* pDepthStencilAttachment;
+    const int32_t* pPreserveAttachments;    
+    int32_t flags;
+    int32_t pipelineBindPoint;
+    int32_t inputAttachmentCount;
+    int32_t colorAttachmentCount;
+    int32_t preserveAttachmentCount;
+};
+
+struct VkSubpassDependency {
+    int32_t srcSubpass;
+    int32_t dstSubpass;
+    int32_t srcStageMask;
+    int32_t dstStageMask;
+    int32_t srcAccessMask;
+    int32_t dstAccessMask;
+    int32_t dependencyFlags;
+};
+
+struct VkRenderPassCreateInfo {
+    const void* pNext;
+    const VkAttachmentDescription* pAttachments;
+    const VkSubpassDescription* pSubpasses;
+    const VkSubpassDependency* pDependencies;    
+    int32_t sType;
+    int32_t flags;
+    int32_t attachmentCount;
+    int32_t subpassCount;
+    int32_t dependencyCount;
+};
+
+struct VkRenderPass_T {
+    int64_t renderPassId;
+    VkAttachmentDescription attachments[MAX_ATTACHMENTS];
+    VkSubpassDescription subpasses[MAX_SUBPASSES];
+    VkSubpassDependency dependencies[MAX_SUBPASS_DEPENDENCIES];    
+    int32_t attachmentCount;
+    int32_t subpassCount;
+    int32_t dependencyCount;
+};
+typedef struct VkRenderPass_T* VkRenderPass;
