@@ -11,17 +11,11 @@ struct VkCommandBuffer_T {
     int32_t currentTopology;
     int32_t currentIndexType;
     int32_t renderTargetWidth;
-    int32_t renderTargetHeight;        
-    VkMemoryBarrier2 memoryBarriers[MAX_BARRIERS];
-    VkBufferMemoryBarrier2 bufferBarriers[MAX_BARRIERS];
-    VkImageMemoryBarrier2 imageBarriers[MAX_BARRIERS];    
-    int32_t memoryBarrierCount;
-    int32_t bufferBarrierCount;
-    int32_t imageBarrierCount;    
+    int32_t renderTargetHeight;
     int32_t isActive;
     std::vector<std::function<void()>> commands;
 };
-typedef struct VkCommandBuffer_T* VkCommandBuffer;
+typedef VkCommandBuffer_T* VkCommandBuffer;
 
 struct VkCommandBufferBeginInfo {
     int32_t sType;
@@ -54,59 +48,68 @@ struct VkSubmitInfo2 {
     int32_t signalSemaphoreInfoCount;
 };
 
+struct VkImageSubresourceRange {
+    int32_t aspectMask;
+    int32_t baseMipLevel;
+    int32_t levelCount;
+    int32_t baseArrayLayer;
+    int32_t layerCount;
+};
+
 struct VkImageMemoryBarrier {
     const void* pNext;
     VkImage image;
-    int32_t sType;
-    int32_t srcAccessMask;
-    int32_t dstAccessMask;
+    uint32_t sType;
+    uint32_t srcAccessMask;
+    uint32_t dstAccessMask;
     int32_t oldLayout;
     int32_t newLayout;
-    int32_t srcQueueFamilyIndex;
-    int32_t dstQueueFamilyIndex;
-    struct VkImageSubresourceRange subresourceRange;
+    uint32_t srcQueueFamilyIndex;
+    uint32_t dstQueueFamilyIndex;
+    VkImageSubresourceRange subresourceRange;
 };
 
 struct VkImageMemoryBarrier2 {
     const void* pNext;
     VkImage image;
-    int64_t srcStageMask;
-    int64_t srcAccessMask;
-    int64_t dstStageMask;
-    int64_t dstAccessMask;
+    uint64_t srcStageMask;
+    uint64_t srcAccessMask;
+    uint64_t dstStageMask;
+    uint64_t dstAccessMask;
     int32_t sType;
     int32_t oldLayout;
     int32_t newLayout;
-    int32_t srcQueueFamilyIndex;
-    int32_t dstQueueFamilyIndex;
+    uint32_t srcQueueFamilyIndex;
+    uint32_t dstQueueFamilyIndex;
+    VkImageSubresourceRange subresourceRange;
 };
 
 struct VkMemoryBarrier {
     const void* pNext;
-    int32_t sType;
-    int32_t srcAccessMask;
-    int32_t dstAccessMask;
+    uint32_t sType;
+    uint32_t srcAccessMask;
+    uint32_t dstAccessMask;
 };
 
 struct VkMemoryBarrier2 {
     const void* pNext;
-    int64_t srcStageMask;
-    int64_t srcAccessMask;
-    int64_t dstStageMask;
-    int64_t dstAccessMask;
+    uint64_t srcStageMask;
+    uint64_t srcAccessMask;
+    uint64_t dstStageMask;
+    uint64_t dstAccessMask;
     int32_t sType;
 };
 
 struct VkBufferMemoryBarrier {
     const void* pNext;
     VkBuffer buffer;
-    int64_t offset;
-    int64_t size;
-    int32_t sType;
-    int32_t srcAccessMask;
-    int32_t dstAccessMask;
-    int32_t srcQueueFamilyIndex;
-    int32_t dstQueueFamilyIndex;
+    uint64_t offset;
+    uint64_t size;
+    uint32_t sType;
+    uint32_t srcAccessMask;
+    uint32_t dstAccessMask;
+    uint32_t srcQueueFamilyIndex;
+    uint32_t dstQueueFamilyIndex;
 };
 
 struct VkBufferMemoryBarrier2 {
@@ -114,13 +117,13 @@ struct VkBufferMemoryBarrier2 {
     VkBuffer buffer;
     int64_t offset;
     int64_t size;
-    int64_t srcStageMask;
-    int64_t srcAccessMask;
-    int64_t dstStageMask;
-    int64_t dstAccessMask;
+    uint64_t srcStageMask;
+    uint64_t srcAccessMask;
+    uint64_t dstStageMask;
+    uint64_t dstAccessMask;
     int32_t sType;
-    int32_t srcQueueFamilyIndex;
-    int32_t dstQueueFamilyIndex;
+    uint32_t srcQueueFamilyIndex;
+    uint32_t dstQueueFamilyIndex;
 };
 
 struct VkDependencyInfo {
@@ -129,10 +132,10 @@ struct VkDependencyInfo {
     const VkBufferMemoryBarrier2* pBufferMemoryBarriers;
     const VkImageMemoryBarrier2* pImageMemoryBarriers;
     int32_t sType;
-    int32_t dependencyFlags;
-    int32_t memoryBarrierCount;
-    int32_t bufferMemoryBarrierCount;
-    int32_t imageMemoryBarrierCount;
+    uint32_t dependencyFlags;
+    uint32_t memoryBarrierCount;
+    uint32_t bufferMemoryBarrierCount;
+    uint32_t imageMemoryBarrierCount;
 };
 
 struct VkCommandBufferSubmitInfo {
