@@ -25,13 +25,13 @@ void vkDestroyFence(VkDevice device, VkFence fence, const void* pAllocator) {
     delete fence;
 }
 
-int32_t vkResetFences(VkDevice device, int32_t fenceCount, const VkFence* pFences) {
+int32_t vkResetFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences) {
     if (!device || !pFences) return -3;    
     for (int32_t i = 0; i < g_ResetBagCount; ++i) {
         if (g_ResetBag[i]) glDeleteSync(g_ResetBag[i]);
     }
     g_ResetBagCount = 0;    
-    for (int32_t i = 0; i < fenceCount; ++i) {
+    for (uint32_t i = 0; i < fenceCount; ++i) {
         VkFence_T* fence = pFences[i];
         if (!fence) continue;        
         if (fence->sync) {
@@ -47,10 +47,10 @@ int32_t vkResetFences(VkDevice device, int32_t fenceCount, const VkFence* pFence
     return 0;
 }
 
-int32_t vkWaitForFences(VkDevice device, int32_t fenceCount, const VkFence* pFences, int32_t waitAll, uint64_t timeout) {
+int32_t vkWaitForFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences, int32_t waitAll, uint64_t timeout) {
     if (!device || !pFences) return -3;
     int32_t signaledCount = 0;
-    for (int32_t i = 0; i < fenceCount; ++i) {
+    for (uint32_t i = 0; i < fenceCount; ++i) {
         VkFence_T* fence = pFences[i];
         if (!fence) continue;
         if (fence->signaled) { signaledCount++; continue; }
