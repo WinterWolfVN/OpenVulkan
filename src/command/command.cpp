@@ -34,59 +34,117 @@ void vkTrimCommandPool(VkDevice device, VkCommandPool commandPool, int32_t flags
     if (!device || !commandPool) return;
 }
 
-void vkCmdPipelineBarrier(VkCommandBuffer commandBuffer, int32_t srcStageMask, int32_t dstStageMask, int32_t dependencyFlags, int32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers, int32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers, int32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers) {
-    if (!commandBuffer) return;    
-    for (int32_t i = 0; i < memoryBarrierCount && commandBuffer->memoryBarrierCount < MAX_BARRIERS; ++i) {
-        VkMemoryBarrier2 b;
-        std::memset(&b, 0, sizeof(b));
-        b.srcStageMask = srcStageMask;
-        b.dstStageMask = dstStageMask;
-        b.srcAccessMask = pMemoryBarriers[i].srcAccessMask;
-        b.dstAccessMask = pMemoryBarriers[i].dstAccessMask;
-        commandBuffer->memoryBarriers[commandBuffer->memoryBarrierCount++] = b;
-    }    
-    for (int32_t i = 0; i < bufferMemoryBarrierCount && commandBuffer->bufferBarrierCount < MAX_BARRIERS; ++i) {
-        VkBufferMemoryBarrier2 b;
-        std::memset(&b, 0, sizeof(b));
-        b.buffer = pBufferMemoryBarriers[i].buffer;
-        b.offset = pBufferMemoryBarriers[i].offset;
-        b.size = pBufferMemoryBarriers[i].size;
-        b.srcStageMask = srcStageMask;
-        b.dstStageMask = dstStageMask;
-        b.srcAccessMask = pBufferMemoryBarriers[i].srcAccessMask;
-        b.dstAccessMask = pBufferMemoryBarriers[i].dstAccessMask;
-        b.srcQueueFamilyIndex = pBufferMemoryBarriers[i].srcQueueFamilyIndex;
-        b.dstQueueFamilyIndex = pBufferMemoryBarriers[i].dstQueueFamilyIndex;
-        commandBuffer->bufferBarriers[commandBuffer->bufferBarrierCount++] = b;
-    }    
-    for (int32_t i = 0; i < imageMemoryBarrierCount && commandBuffer->imageBarrierCount < MAX_BARRIERS; ++i) {
-        VkImageMemoryBarrier2 b;
-        std::memset(&b, 0, sizeof(b));
-        b.image = pImageMemoryBarriers[i].image;
-        b.srcStageMask = srcStageMask;
-        b.dstStageMask = dstStageMask;
-        b.srcAccessMask = pImageMemoryBarriers[i].srcAccessMask;
-        b.dstAccessMask = pImageMemoryBarriers[i].dstAccessMask;
-        b.oldLayout = pImageMemoryBarriers[i].oldLayout;
-        b.newLayout = pImageMemoryBarriers[i].newLayout;
-        b.srcQueueFamilyIndex = pImageMemoryBarriers[i].srcQueueFamilyIndex;
-        b.dstQueueFamilyIndex = pImageMemoryBarriers[i].dstQueueFamilyIndex;
-        b.subresourceRange = pImageMemoryBarriers[i].subresourceRange;
-        commandBuffer->imageBarriers[commandBuffer->imageBarrierCount++] = b;
+void vkCmdPipelineBarrier(VkCommandBuffer commandBuffer, uint32_t srcStageMask, uint32_t dstStageMask, uint32_t dependencyFlags, uint32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers, uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers, uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers) {
+    if (!commandBuffer) return;
+    if (memoryBarrierCount > MAX_BARRIERS || bufferMemoryBarrierCount > MAX_BARRIERS || imageMemoryBarrierCount > MAX_BARRIERS) {
+        return;
     }
+    if (memoryBarrierCount > 0 && !pMemoryBarriers) return;
+    if (bufferMemoryBarrierCount > 0 && !pBufferMemoryBarriers) return;
+    if (imageMemoryBarrierCount > 0 && !pImageMemoryBarriers) return;
+    std::vector<VkMemoryBarrier2> memoryBarriers(memoryBarrierCount);
+    std::vector<VkBufferMemoryBarrier2> bufferBarriers(bufferMemoryBarrierCount);
+    std::vector<VkImageMemoryBarrier2> imageBarriers(imageMemoryBarrierCount);
+    for (uint32_t i = 0; i < memoryBarrierCount; ++i) {
+        const VkMemoryBarrier& src = pMemoryBarriers[i];
+        VkMemoryBarrier2& dst = memoryBarriers[i];
+        dst.pNext = src.pNext;
+        dst.sType = src.sType;
+        dst.srcStageMask = srcStageMask;
+        dst.srcAccessMask = src.srcAccessMask;
+        dst.dstStageMask = dstStageMask;
+        dst.dstAccessMask = src.dstAccessMask;
+    }
+    for (uint32_t i = 0; i < bufferMemoryBarrierCount; ++i) {
+        const VkBufferMemoryBarrier& src = pBufferMemoryBarriers[i];
+        VkBufferMemoryBarrier2& dst = bufferBarriers[i];
+        dst.pNext = src.pNext;
+        dst.sType = src.sType;
+        dst.buffer = src.buffer;
+        dst.offset = src.offset;
+        dst.size = src.size;
+        dst.srcStageMask = srcStageMask;
+        dst.srcAccessMask = src.srcAccessMask;
+        dst.dstStageMask = dstStageMask;
+        dst.dstAccessMask = src.dstAccessMask;
+        dst.srcQueueFamilyIndex = src.srcQueueFamilyIndex;
+        dst.dstQueueFamilyIndex = src.dstQueueFamilyIndex;
+    }
+    for (uint32_t i = 0; i < imageMemoryBarrierCount; ++i) {
+        const VkImageMemoryBarrier& src = pImageMemoryBarriers[i];
+        VkImageMemoryBarrier2& dst = imageBarriers[i];
+        dst.pNext = src.pNext;
+        dst.sType = src.sType;
+        dst.image = src.image;
+        dst.srcStageMask = srcStageMask;
+        dst.srcAccessMask = src.srcAccessMask;
+        dst.dstStageMask = dstStageMask;
+        dst.dstAccessMask = src.dstAccessMask;
+        dst.oldLayout = src.oldLayout;
+        dst.newLayout = src.newLayout;
+        dst.srcQueueFamilyIndex = src.srcQueueFamilyIndex;
+        dst.dstQueueFamilyIndex = src.dstQueueFamilyIndex;
+        dst.subresourceRange = src.subresourceRange;
+    }
+    commandBuffer->commands.push_back([memoryBarriers = std::move(memoryBarriers), bufferBarriers = std::move(bufferBarriers), imageBarriers = std::move(imageBarriers), dependencyFlags]() {
+            for (const auto& barrier : memoryBarriers) {
+                (void)barrier;
+            }
+            for (const auto& barrier : bufferBarriers) {
+                (void)barrier;
+            }
+            for (const auto& barrier : imageBarriers) {
+                (void)barrier;
+            }
+            (void)dependencyFlags;
+        }
+    );
 }
 
 void vkCmdPipelineBarrier2(VkCommandBuffer commandBuffer, const VkDependencyInfo* pDependencyInfo) {
-    if (!commandBuffer || !pDependencyInfo) return;    
-    for (int32_t i = 0; i < pDependencyInfo->memoryBarrierCount && commandBuffer->memoryBarrierCount < MAX_BARRIERS; ++i) {
-        commandBuffer->memoryBarriers[commandBuffer->memoryBarrierCount++] = pDependencyInfo->pMemoryBarriers[i];
-    }    
-    for (int32_t i = 0; i < pDependencyInfo->bufferMemoryBarrierCount && commandBuffer->bufferBarrierCount < MAX_BARRIERS; ++i) {
-        commandBuffer->bufferBarriers[commandBuffer->bufferBarrierCount++] = pDependencyInfo->pBufferMemoryBarriers[i];
-    }    
-    for (int32_t i = 0; i < pDependencyInfo->imageMemoryBarrierCount && commandBuffer->imageBarrierCount < MAX_BARRIERS; ++i) {
-        commandBuffer->imageBarriers[commandBuffer->imageBarrierCount++] = pDependencyInfo->pImageMemoryBarriers[i];
+    if (!commandBuffer || !pDependencyInfo) return;
+    if (pDependencyInfo->memoryBarrierCount > MAX_BARRIERS || pDependencyInfo->bufferMemoryBarrierCount > MAX_BARRIERS || pDependencyInfo->imageMemoryBarrierCount > MAX_BARRIERS) {
+        return;
     }
+    if (pDependencyInfo->memoryBarrierCount > 0 && !pDependencyInfo->pMemoryBarriers) {
+        return;
+    }
+    if (pDependencyInfo->bufferMemoryBarrierCount > 0 && !pDependencyInfo->pBufferMemoryBarriers) {
+        return;
+    }
+    if (pDependencyInfo->imageMemoryBarrierCount > 0 && !pDependencyInfo->pImageMemoryBarriers) {
+        return;
+    }
+    const uint32_t memoryBarrierCount = pDependencyInfo->memoryBarrierCount;
+    const uint32_t bufferMemoryBarrierCount = pDependencyInfo->bufferMemoryBarrierCount;
+    const uint32_t imageMemoryBarrierCount = pDependencyInfo->imageMemoryBarrierCount;
+    std::vector<VkMemoryBarrier2> memoryBarriers(memoryBarrierCount);
+    std::vector<VkBufferMemoryBarrier2> bufferBarriers(bufferMemoryBarrierCount);
+    std::vector<VkImageMemoryBarrier2> imageBarriers(imageMemoryBarrierCount);
+    for (uint32_t i = 0; i < memoryBarrierCount; ++i) {
+        memoryBarriers[i] = pDependencyInfo->pMemoryBarriers[i];
+    }
+    for (uint32_t i = 0; i < bufferMemoryBarrierCount; ++i) {
+        bufferBarriers[i] = pDependencyInfo->pBufferMemoryBarriers[i];
+    }
+    for (uint32_t i = 0; i < imageMemoryBarrierCount; ++i) {
+        imageBarriers[i] = pDependencyInfo->pImageMemoryBarriers[i];
+    }
+    const uint32_t dependencyFlags = pDependencyInfo->dependencyFlags;
+    commandBuffer->commands.push_back([memoryBarriers = std::move(memoryBarriers), bufferBarriers = std::move(bufferBarriers), imageBarriers = std::move(imageBarriers),
+         dependencyFlags]() {
+            for (const auto& barrier : memoryBarriers) {
+                (void)barrier;
+            }
+            for (const auto& barrier : bufferBarriers) {
+                (void)barrier;
+            }
+            for (const auto& barrier : imageBarriers) {
+                (void)barrier;
+            }
+            (void)dependencyFlags;
+        }
+    );
 }
 
 void vkCmdExecuteCommands(VkCommandBuffer commandBuffer, int32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers) {
