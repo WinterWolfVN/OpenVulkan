@@ -1,4 +1,4 @@
-#include "../struct/stcmd.h"
+#include "stcmd.h"
 #include <GLES3/gl31.h>
 #include <cstdint>
 #include <vector>
@@ -30,7 +30,7 @@ int32 vkEndCommandBuffer(
     return 0;
 }
 
-void vkTrimCommandPool(VkDevice device, VkCommandPool commandPool, int32_t flags) {
+void vkTrimCommandPool(VkDevice device, VkCommandPool commandPool, uint32_t flags) {
     if (!device || !commandPool) return;
 }
 

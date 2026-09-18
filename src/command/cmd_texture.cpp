@@ -1,4 +1,4 @@
-#include "../struct/stdraw.h"
+#include "stdraw.h"
 #include <GLES3/gl31.h>
 #include <cstdint>
 #include <vector>

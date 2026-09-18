@@ -1,4 +1,4 @@
-#include "../struct/stdraw.h"
+#include "stdraw.h"
 #include <new>
 #include <cstring>
 
@@ -15,10 +15,7 @@ void vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, const VkRenderPassBegin
     }    
     commandBuffer->commands.push_back([fbo, area, renderTargetHeight, cvs = std::move(clearValues)]() {
         glBindFramebuffer(GL_FRAMEBUFFER, static_cast<GLuint>(fbo));                         
-        glScissor(static_cast<GLint>(area.offset.x),
-                  static_cast<GLint>(renderTargetHeight - (area.offset.y + area.extent.height)),
-                  static_cast<GLsizei>(area.extent.width),
-                  static_cast<GLsizei>(area.extent.height));                  
+        glScissor(static_cast<GLint>(area.offset.x), static_cast<GLint>(renderTargetHeight - (area.offset.y + area.extent.height)), static_cast<GLsizei>(area.extent.width), static_cast<GLsizei>(area.extent.height));                  
         if (!cvs.empty()) {
             GLbitfield clearMask = 0;            
             glClearColor(cvs[0].color.float32[0], cvs[0].color.float32[1], cvs[0].color.float32[2], cvs[0].color.float32[3]);
