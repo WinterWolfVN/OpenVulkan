@@ -1,5 +1,5 @@
-#include "../struct/stshader.h"
-#include "../struct/stmng.h"
+#include "stpipeline.h"
+#include "../manager/stmng.h"
 #include <GLES3/gl31.h>
 #include <cstdint>
 #include <vector>

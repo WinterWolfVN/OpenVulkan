@@ -1,5 +1,5 @@
-#include "../struct/stshader.h"
-#include "translatespirv.h"
+#include "stshader.h"
+#include "../spirv/main.h"
 #include <GLES3/gl31.h>
 #include <cstring>
 #include <cstdlib>
@@ -32,4 +32,4 @@ void vkDestroyShaderModule(VkDevice device, VkShaderModule shaderModule, const v
     }
 }
 
-    }
+}
