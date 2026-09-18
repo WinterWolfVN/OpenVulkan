@@ -1,4 +1,4 @@
-#include "../struct/stsync.h"
+#include "stsync.h"
 #include <GLES3/gl3.h>
 #include <new>
 #include <cstring>

@@ -1,5 +1,5 @@
-#include "../struct/stsync.h"
-#include "../struct/stcmd.h"
+#include "stsync.h"
+#include "../command/stcmd.h"
 #include <GLES3/gl3.h>
 #include <new>
 #include <cstring>
