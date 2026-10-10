@@ -3,9 +3,9 @@
 #include <vector>
 #include <functional>
 
-#define MAX_ATTACHMENTS 8
-#define MAX_SUBPASSES 8
-#define MAX_SUBPASS_DEPENDENCIES 8
+#define MAX_ATTACHMENTS 20
+#define MAX_SUBPASSES 20
+#define MAX_SUBPASS_DEPENDENCIES 20
 
 struct VkViewport {
     float x;

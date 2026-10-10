@@ -1,4 +1,5 @@
 #pragma once
+#include "stbuffer.h"
 #include <cstdint>
 #include <vector>
 #include <functional>
@@ -14,6 +15,8 @@ struct VkCommandBuffer_T {
     int32_t renderTargetHeight;
     int32_t isActive;
     std::vector<std::function<void()>> commands;
+    VkPipeline currentPipeline = nullptr;
+    int32_t currentTopology = 0;
 };
 typedef VkCommandBuffer_T* VkCommandBuffer;
 
@@ -46,14 +49,6 @@ struct VkSubmitInfo2 {
     int32_t waitSemaphoreInfoCount;
     int32_t commandBufferInfoCount;
     int32_t signalSemaphoreInfoCount;
-};
-
-struct VkImageSubresourceRange {
-    int32_t aspectMask;
-    int32_t baseMipLevel;
-    int32_t levelCount;
-    int32_t baseArrayLayer;
-    int32_t layerCount;
 };
 
 struct VkImageMemoryBarrier {

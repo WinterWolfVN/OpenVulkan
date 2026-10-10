@@ -1,6 +1,6 @@
 #include "stdraw.h"
 #include "stcmd.h"
-#include "../shader/stshader.h"
+#include "../shader/stpipeline.h"
 #include "../manager/stmng.h"
 #include <GLES3/gl31.h>
 #include <cstdint>
@@ -11,8 +11,10 @@
 extern "C" {
 
 void vkCmdDraw(VkCommandBuffer commandBuffer, int32_t vertexCount, int32_t instanceCount, int32_t firstVertex, int32_t firstInstance) {
-    if (!commandBuffer) return;    
-    int32_t topo = commandBuffer->currentTopology;    
+    if (!commandBuffer || !commandBuffer->currentPipeline) return;
+    VkPipeline pipeline = commandBuffer->currentPipeline;
+    if (!pipeline) return;
+    int32_t topo = pipeline->topology;
     commandBuffer->commands.push_back([=]() {
         if (instanceCount > 1) {
             glDrawArraysInstanced(static_cast<GLenum>(topo), firstVertex, vertexCount, instanceCount);
@@ -72,10 +74,7 @@ void vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, in
 void vkCmdDispatch(VkCommandBuffer commandBuffer, int32_t groupCountX, int32_t groupCountY, int32_t groupCountZ) {
     if (!commandBuffer) return;    
     commandBuffer->commands.push_back([=]() {
-        glDispatchCompute(static_cast<GLuint>(groupCountX), 
-                          static_cast<GLuint>(groupCountY), 
-                          static_cast<GLuint>(groupCountZ));
-    });
+        glDispatchCompute(static_cast<GLuint>(groupCountX), static_cast<GLuint>(groupCountY), static_cast<GLuint>(groupCountZ));});
 }
 
 void vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, int32_t pipelineBindPoint, VkPipelineLayout layout, int32_t firstSet, int32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets, int32_t dynamicOffsetCount, const int32_t* pDynamicOffsets) {
@@ -137,49 +136,38 @@ void vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buffer, int64_
     });
 }    
     
- void vkCmdBindPipeline(VkCommandBuffer commandBuffer, int32_t pipelineBindPoint, VkPipeline pipeline) {
-    if (!commandBuffer || !pipeline) return;    
-    int32_t prog = pipeline->program;
-    int32_t isCompute = (pipelineBindPoint == 1);    
-    int32_t topo = pipeline->topology;
-    int32_t dTest = pipeline->depthTestEnable;
-    int32_t dOp = pipeline->depthCompareOp;
-    int32_t cEnable = pipeline->cullModeEnable;
-    int32_t cFace = pipeline->cullFace;
-    int32_t fFace = pipeline->frontFace;
-    int32_t bEnable = pipeline->blendEnable;
-    int32_t bSrc = pipeline->blendSrcFactor;
-    int32_t bDst = pipeline->blendDstFactor;
-    int32_t bEq = pipeline->blendEquation;    
-    commandBuffer->commands.push_back([=]() {
-        glUseProgram(static_cast<GLuint>(prog));        
-        if (!isCompute) {
-            if (dTest) {
-                glEnable(GL_DEPTH_TEST);
-                glDepthFunc(static_cast<GLenum>(dOp));
-            } else {
-                glDisable(GL_DEPTH_TEST);
-            }            
-            if (cEnable) {
-                glEnable(GL_CULL_FACE);
-                glCullFace(static_cast<GLenum>(cFace));
-                glFrontFace(static_cast<GLenum>(fFace));
-            } else {
-                glDisable(GL_CULL_FACE);
-            }            
-            if (bEnable) {
-                glEnable(GL_BLEND);
-                glBlendFunc(static_cast<GLenum>(bSrc), static_cast<GLenum>(bDst));
-                glBlendEquation(static_cast<GLenum>(bEq));
-            } else {
-                glDisable(GL_BLEND);
-            }
+void vkCmdBindPipeline(VkCommandBuffer commandBuffer, int32_t pipelineBindPoint, VkPipeline pipeline) {
+    if (!commandBuffer || !pipeline) return;
+    commandBuffer->currentPipeline = pipeline;
+    commandBuffer->commands.push_back([pipeline]() {
+        glUseProgram(static_cast<GLuint>(pipeline->program));
+        if (pipelineBindPoint == 1)
+            return;
+        if (pipeline->depthTestEnable) {
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(static_cast<GLenum>(pipeline->depthCompareOp));
+        } else {
+            glDisable(GL_DEPTH_TEST);
+        }
+        if (pipeline->cullModeEnable) {
+            glEnable(GL_CULL_FACE);
+            glCullFace(static_cast<GLenum>(pipeline->cullFace));
+            glFrontFace(static_cast<GLenum>(pipeline->frontFace));
+        } else {
+            glDisable(GL_CULL_FACE);
+        }
+        if (pipeline->blendEnable) {
+            glEnable(GL_BLEND);
+            glBlendFunc(
+                static_cast<GLenum>(pipeline->blendSrcFactor),
+                static_cast<GLenum>(pipeline->blendDstFactor)
+            );
+            glBlendEquation(static_cast<GLenum>(pipeline->blendEquation));
+        } else {
+            glDisable(GL_BLEND);
         }
     });
-    if (!isCompute) {
-        commandBuffer->currentTopology = topo;
-    }
-}       
+}  
 
 void vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, int32_t firstBinding, int32_t bindingCount, const VkBuffer* pBuffers, const int64_t* pOffsets) {
     if (!commandBuffer || !pBuffers || bindingCount <= 0) return;    

@@ -1,4 +1,5 @@
 #include "stcmd.h"
+#include "../runtime/stsync.h"
 #include <GLES3/gl31.h>
 #include <cstdint>
 #include <vector>
@@ -6,12 +7,8 @@
 
 extern "C" {
 
-int32_t vkBeginCommandBuffer(
-    VkCommandBuffer commandBuffer,
-    const VkCommandBufferBeginInfo* pBeginInfo)
-{
-    if (!commandBuffer)
-        return -3;
+int32_t vkBeginCommandBuffer(VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo* pBeginInfo){
+    if (!commandBuffer) return -3;
     commandBuffer->commands.clear();
     commandBuffer->recording = true;
     if (pBeginInfo)
@@ -19,13 +16,9 @@ int32_t vkBeginCommandBuffer(
     return 0;
 }
 
-int32 vkEndCommandBuffer(
-    VkCommandBuffer commandBuffer)
-{
-    if (!commandBuffer)
-        return -3;
-    if (!commandBuffer->recording)
-        return -3;
+int32 vkEndCommandBuffer(VkCommandBuffer commandBuffer){
+    if (!commandBuffer) return -3;
+    if (!commandBuffer->recording) return -3;
     commandBuffer->recording = false;
     return 0;
 }
@@ -193,6 +186,32 @@ void vkCmdBeginRendering(VkCommandBuffer commandBuffer, const VkRenderingInfo* p
     });
 }
 
+void vkCmdSetEvent2(VkCommandBuffer commandBuffer, VkEvent event, const VkDependencyInfo* pDependencyInfo) {
+    if (!commandBuffer || !event) return;
+    if (event->sync) glDeleteSync(event->sync);
+    event->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    event->signaled = 0;
+}
+
+void vkCmdResetEvent2(VkCommandBuffer commandBuffer, VkEvent event, int64_t stageMask) {
+    if (!commandBuffer || !event) return;
+    event->signaled = 0;
+    if (event->sync) {
+        glDeleteSync(event->sync);
+        event->sync = 0;
+    }
+}
+
+void vkCmdWaitEvents2(VkCommandBuffer commandBuffer, int32_t eventCount, const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos) {
+    if (!commandBuffer || !pEvents) return;
+    for (int32_t i = 0; i < eventCount; ++i) {
+        VkEvent ev = pEvents[i];
+        if (ev && ev->sync) {
+            glWaitSync(ev->sync, 0, GL_TIMEOUT_IGNORED);
+        }
+    }
+}
+
 void vkCmdEndRendering(VkCommandBuffer commandBuffer) {
     if (!commandBuffer) return;
 }
@@ -214,7 +233,6 @@ int32_t vkQueueSubmit(VkQueue queue, int32_t submitCount, const VkSubmitInfo* pS
     glFlush();
     return 0;
 }
-   } 
 
 int32_t vkQueueSubmit2(VkQueue queue, int32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence) {
     if (!queue) return -3;    
@@ -233,4 +251,6 @@ int32_t vkQueueSubmit2(VkQueue queue, int32_t submitCount, const VkSubmitInfo2* 
         }
     }
     return 0;
+}
+
 }

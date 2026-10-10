@@ -119,6 +119,12 @@ void vkCmdSetScissorWithCount(VkCommandBuffer commandBuffer, int32_t scissorCoun
     }
 }
 
+void vkCmdSetDepthBiasEnable(VkCommandBuffer commandBuffer, int32_t depthBiasEnable) {
+    if (!commandBuffer) return;
+    if (depthBiasEnable) glEnable(GL_POLYGON_OFFSET_FILL);
+    else glDisable(GL_POLYGON_OFFSET_FILL);
+}
+
 void vkCmdSetDepthTestEnable(VkCommandBuffer commandBuffer, int32_t depthTestEnable) {
     if (!commandBuffer) return;
     if (depthTestEnable) glEnable(GL_DEPTH_TEST);
