@@ -20,7 +20,7 @@ typedef enum VkDescriptorType {
 } VkDescriptorType;
 
 struct VkDescriptorSetLayoutBinding {
-    const VkSampler* pImmutableSamplers;
+    const VkSampler* pImmutableSampler;
     int32_t binding;
     int32_t descriptorType;
     int32_t descriptorCount;
@@ -28,7 +28,7 @@ struct VkDescriptorSetLayoutBinding {
 };
 
 struct VkDescriptorSetLayout_T {
-    VkDescriptorSetLayoutBinding* bindings;
+    VkDescriptorSetLayoutBinding* binding;
     int64_t layoutId;
     int32_t bindingCount;
 };
@@ -106,7 +106,7 @@ struct VkCopyDescriptorSet {
 
 struct VkDescriptorSetLayoutCreateInfo {
     const void* pNext;
-    const VkDescriptorSetLayoutBinding* pBindings;
+    const VkDescriptorSetLayoutBinding* pBinding;
     int32_t sType;
     uint32_t flags;
     int32_t bindingCount;
@@ -129,7 +129,7 @@ struct VkDescriptorPoolCreateInfo {
 struct VkDescriptorSetAllocateInfo {
     const void* pNext;
     VkDescriptorPool descriptorPool;
-    const VkDescriptorSetLayout* pSetLayouts;
+    const VkDescriptorSetLayout* pSetLayout;
     int32_t sType;
     int32_t descriptorSetCount;
 };
