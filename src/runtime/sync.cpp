@@ -1,5 +1,4 @@
 #include "stsync.h"
-#include "../command/stcmd.h"
 #include <GLES3/gl3.h>
 #include <new>
 #include <cstring>
@@ -26,23 +25,22 @@ void vkDestroyFence(VkDevice device, VkFence fence, const void* pAllocator) {
 }
 
 int32_t vkResetFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences) {
-    if (!device || !pFences) return -3;    
-    for (int32_t i = 0; i < g_ResetBagCount; ++i) {
-        if (g_ResetBag[i]) glDeleteSync(g_ResetBag[i]);
+    if (!device || !pFences) return -3;
+    for (int32_t i = 0; i < ResetCacheCount; ++i) {
+        ResetCache[i] = 0;
     }
-    g_ResetBagCount = 0;    
+    ResetCacheCount = 0;
     for (uint32_t i = 0; i < fenceCount; ++i) {
         VkFence_T* fence = pFences[i];
-        if (!fence) continue;        
+        if (!fence) continue;
         if (fence->sync) {
-            if (g_ResetBagCount < MAX_RESET_BAG) {
-                g_ResetBag[g_ResetBagCount++] = fence->sync;
-            } else {
-                glDeleteSync(fence->sync);
-            }
+            glDeleteSync(fence->sync);
             fence->sync = 0;
         }
         fence->signaled = 0;
+        if (ResetCacheCount < MaxResetCache) {
+            ResetCache[ResetCacheCount++] = fence;
+        }
     }
     return 0;
 }
@@ -138,32 +136,6 @@ int32_t vkDeviceWaitIdle(VkDevice device) {
     if (!device) return -3;
     glFinish();
     return 0;
-}
-
-void vkCmdSetEvent2(VkCommandBuffer commandBuffer, VkEvent event, const VkDependencyInfo* pDependencyInfo) {
-    if (!commandBuffer || !event) return;
-    if (event->sync) glDeleteSync(event->sync);
-    event->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-    event->signaled = 0;
-}
-
-void vkCmdResetEvent2(VkCommandBuffer commandBuffer, VkEvent event, int64_t stageMask) {
-    if (!commandBuffer || !event) return;
-    event->signaled = 0;
-    if (event->sync) {
-        glDeleteSync(event->sync);
-        event->sync = 0;
-    }
-}
-
-void vkCmdWaitEvents2(VkCommandBuffer commandBuffer, int32_t eventCount, const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos) {
-    if (!commandBuffer || !pEvents) return;
-    for (int32_t i = 0; i < eventCount; ++i) {
-        VkEvent ev = pEvents[i];
-        if (ev && ev->sync) {
-            glWaitSync(ev->sync, 0, GL_TIMEOUT_IGNORED);
-        }
-    }
 }
 
 }

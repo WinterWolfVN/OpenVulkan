@@ -1,10 +1,10 @@
 #pragma once
 #include <cstdint>
 
-#define MAX_RESET_BAG 256
+#define MaxResetCache 256
 
-static GLsync g_ResetBag[MAX_RESET_BAG];
-static int32_t g_ResetBagCount = 0;
+static VkFence_T* ResetCache[MaxResetCache];
+static int32_t ResetCacheCount = 0;
 
 struct VkFenceCreateInfo {
     const void* pNext;    
