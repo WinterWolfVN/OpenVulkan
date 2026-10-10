@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#define MAX_CACHE_ENTRIES 256
+#define MAX_CACHE_ENTRIES 500
 
 struct VkPipeline_T {
     VkPipelineLayout layout;    
@@ -171,25 +171,26 @@ struct VkPipelineLayout_T {
 };
 typedef struct VkPipelineLayout_T* VkPipelineLayout;
 
-struct VkPipelineCacheHeader {
-    uint64_t headerSize;
-    uint64_t headerVersion;
-    uint64_t vendorID;
-    uint64_t deviceID;
-    uint32_t pipelineCacheUUID[4];
+struct VkPipelineCacheHeaderVersionOne {
+    uint32_t headerSize;
+    uint32_t headerVersion;
+    uint32_t vendorID;
+    uint32_t deviceID;
+    uint8_t pipelineCacheUUID[VK_UUID_SIZE];
 };
 
-struct VkPipelineCacheEntry {
+struct OvPipelineCache {
     uint64_t hash;
-    uint32_t* binaryData;
-    uint64_t binarySize;
+    uint32_t* ovdata;
+    uint64_t ovsize;
 };
 
 struct VkPipelineCache_T {
     int64_t cacheId;
-    VkPipelineCacheEntry entries[MAX_CACHE_ENTRIES];    
+    VkPipelineCacheEntry entries[MAX_CACHE_ENTRIES];
     int32_t entryCount;
     uint32_t flags;
+    VkPipelineCacheHeaderVersionOne header;
 };
 typedef struct VkPipelineCache_T* VkPipelineCache;
 

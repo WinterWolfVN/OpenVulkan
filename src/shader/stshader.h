@@ -1,8 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#define MAX_CACHE_ENTRIES 256
-
 struct VkShaderModule_T {
     char* code;
     int64_t codeSize;
