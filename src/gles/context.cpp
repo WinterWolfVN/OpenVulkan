@@ -63,7 +63,7 @@ int32_t vkEnumeratePhysicalDevices(VkInstance instance, int32_t* pPhysicalDevice
             if (renderer) {
                 std::snprintf(g_cached_gpu.deviceName, sizeof(g_cached_gpu.deviceName), "%s", renderer);
             } else {
-                std::snprintf(g_cached_gpu.deviceName, sizeof(g_cached_gpu.deviceName), "Mali-G Series GPU (GLES 3.0 Core)");
+                std::snprintf(g_cached_gpu.deviceName, sizeof(g_cached_gpu.deviceName), "Mali G68 (GLES 3.1 Core)");
             }
             eglMakeCurrent(instance->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
         }
@@ -107,32 +107,20 @@ int32_t vkCreateDevice(VkPhysicalDevice physicalDevice, const void* pCreateInfo,
     if (!physicalDevice || !pDevice) return -3;
     VkDevice dev = new VkDevice_T();
     dev->display = physicalDevice->display;
-    EGLint config_attribs[] = {
-        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
-        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
-        EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8,
-        EGL_NONE
-    };    
+    EGLint config_attribs[] = { EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_SURFACE_TYPE, EGL_PBUFFER_BIT, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_NONE };    
     EGLConfig config;
     EGLint num_configs;    
     if (!eglChooseConfig(dev->display, config_attribs, &config, 1, &num_configs) || num_configs == 0) {
         delete dev;
         return -3;
     }    
-    EGLint context_attribs[] = {
-        EGL_CONTEXT_CLIENT_VERSION, 3,
-        EGL_NONE
-    };    
+    EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };    
     dev->context = eglCreateContext(dev->display, config, EGL_NO_CONTEXT, context_attribs);
     if (dev->context == EGL_NO_CONTEXT) {
         delete dev;
         return -3;
     }
-    EGLint pbuffer_attribs[] = {
-        EGL_WIDTH, 512,
-        EGL_HEIGHT, 512,
-        EGL_NONE
-    };
+    EGLint pbuffer_attribs[] = { EGL_WIDTH, 512, EGL_HEIGHT, 512, EGL_NONE };
     dev->surface = eglCreatePbufferSurface(dev->display, config, pbuffer_attribs);
     if (dev->surface == EGL_NO_SURFACE) {
         eglDestroyContext(dev->display, dev->context);
